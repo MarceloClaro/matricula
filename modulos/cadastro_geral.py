@@ -158,6 +158,164 @@ def render_cadastro_geral(data_manager):
             tipo_deficiencia = st.text_input("Tipo(s) de Deficiência", max_chars=200)
             atendimentos_especializados = st.text_input("Atendimentos Especializados (AEE, outros)", max_chars=200)
         
+        # Se o aluno tem deficiência, mostrar campos adicionais de CID-10 e DSM-5
+        if aluno_deficiencia == "Sim":
+            st.markdown("---")
+            st.markdown("**5.2.1 Classificação Diagnóstica (CID-10 e DSM-5)**")
+            st.info("💡 Selecione o diagnóstico principal. A descrição será preenchida automaticamente.")
+            
+            # Lista dos 50 transtornos e deficiências mais comuns nas escolas
+            diagnosticos = {
+                "": "Selecione um diagnóstico...",
+                
+                # DEFICIÊNCIAS INTELECTUAIS E ATRASOS
+                "F70 - Deficiência Intelectual Leve": "Deficiência intelectual leve (QI 50-69). Dificuldades na aprendizagem acadêmica, necessita suporte pedagógico individualizado. DSM-5: 317 (F70). Adaptações curriculares e atividades concretas são essenciais.",
+                "F71 - Deficiência Intelectual Moderada": "Deficiência intelectual moderada (QI 35-49). Requer supervisão constante e apoio intensivo. DSM-5: 318.0 (F71). Necessita atividades funcionais e treino de habilidades de vida diária.",
+                "F72 - Deficiência Intelectual Grave": "Deficiência intelectual grave (QI 20-34). Requer apoio contínuo e extensivo. DSM-5: 318.1 (F72). Foco em comunicação alternativa e autonomia básica.",
+                "F79 - Deficiência Intelectual Não Especificada": "Deficiência intelectual não especificada. Diagnóstico em investigação. DSM-5: 319 (F79). Avaliação neuropsicológica em andamento.",
+                
+                # TRANSTORNOS DO ESPECTRO AUTISTA
+                "F84.0 - Autismo Infantil (TEA Nível 3)": "Transtorno do Espectro Autista severo. Requer apoio muito substancial. DSM-5: 299.00 (F84.0). Déficits graves em comunicação e interação social, comportamentos repetitivos marcantes.",
+                "F84.5 - Síndrome de Asperger (TEA Nível 1)": "TEA nível 1 sem déficit intelectual. Requer apoio. DSM-5: 299.00 (F84.5). Dificuldades na interação social, interesses restritos, linguagem preservada.",
+                "F84.1 - Autismo Atípico": "TEA atípico. DSM-5: 299.00 (F84.1). Manifestações incompletas ou atípicas do autismo.",
+                
+                # TDAH
+                "F90.0 - TDAH Tipo Predominantemente Desatento": "TDAH com predomínio de desatenção. DSM-5: 314.00 (F90.0). Dificuldade em manter foco, esquecimento frequente, desorganização. Responde bem a ambientes estruturados.",
+                "F90.1 - TDAH Tipo Predominantemente Hiperativo-Impulsivo": "TDAH hiperativo-impulsivo. DSM-5: 314.01 (F90.1). Agitação motora, impulsividade, dificuldade em esperar. Necessita pausas e movimento.",
+                "F90.2 - TDAH Tipo Combinado": "TDAH combinado. DSM-5: 314.01 (F90.2). Desatenção + hiperatividade/impulsividade. Requer manejo comportamental e medicação.",
+                
+                # DIFICULDADES ESPECÍFICAS DE APRENDIZAGEM
+                "F81.0 - Transtorno Específico de Leitura (Dislexia)": "Dislexia. DSM-5: 315.00 (F81.0). Dificuldade na decodificação, fluência e compreensão leitora. Necessita método multissensorial e tempo extra.",
+                "F81.1 - Transtorno Específico da Escrita (Disortografia)": "Disortografia. DSM-5: 315.2 (F81.1). Dificuldade na expressão escrita, ortografia, gramática. Requer treino sistemático e tecnologias assistivas.",
+                "F81.2 - Transtorno Específico da Aritmética (Discalculia)": "Discalculia. DSM-5: 315.1 (F81.2). Dificuldade com números, cálculos, raciocínio matemático. Necessita materiais concretos e ensino explícito.",
+                "F81.3 - Transtorno Misto de Habilidades Escolares": "Transtorno misto de aprendizagem. DSM-5: 315.8 (F81.3). Comprometimento em múltiplas áreas acadêmicas.",
+                
+                # DEFICIÊNCIAS SENSORIAIS
+                "H90.3 - Perda Auditiva Neurossensorial Bilateral": "Deficiência auditiva bilateral. Necessita aparelho auditivo e/ou implante coclear. Beneficia-se de intérprete de Libras, professor bilíngue.",
+                "H90.5 - Perda Auditiva Neurossensorial Unilateral": "Deficiência auditiva unilateral. Necessita adaptações na sala (posicionamento preferencial).",
+                "H90.0 - Perda Auditiva Condutiva Bilateral": "Perda auditiva condutiva. Geralmente tratável. Necessita acompanhamento otorrinolaringológico.",
+                "H54.0 - Cegueira Bilateral": "Cegueira. Necessita sistema Braille, audiodescrição, materiais táteis. Professor de AEE especializado.",
+                "H54.4 - Baixa Visão Bilateral": "Baixa visão. Necessita materiais ampliados, alto contraste, boa iluminação, lupa eletrônica.",
+                
+                # DEFICIÊNCIAS FÍSICAS
+                "G80.0 - Paralisia Cerebral Espástica": "Paralisia cerebral espástica. Rigidez muscular. Necessita fisioterapia, adaptações posturais, tecnologia assistiva.",
+                "G80.1 - Paralisia Cerebral Diplégica Espástica": "Paralisia cerebral diplégica. Comprometimento de membros inferiores. Necessita órteses, cadeira de rodas.",
+                "G80.3 - Paralisia Cerebral Discinética": "Paralisia cerebral discinética. Movimentos involuntários. Necessita comunicação alternativa.",
+                "G82.1 - Paraplegia Flácida": "Paraplegia. Paralisia de membros inferiores. Necessita acessibilidade total, cadeira de rodas.",
+                "M41.0 - Escoliose Idiopática Infantil": "Escoliose. Desvio da coluna. Necessita mobiliário adaptado, fisioterapia.",
+                
+                # TRANSTORNOS DE COMUNICAÇÃO
+                "F80.0 - Transtorno Específico da Articulação da Fala": "Transtorno fonológico. DSM-5: 315.39 (F80.0). Dificuldade na produção dos sons da fala. Necessita fonoterapia.",
+                "F80.1 - Transtorno Expressivo da Linguagem": "Transtorno da linguagem expressiva. DSM-5: 315.39 (F80.1). Dificuldade em expressar-se verbalmente.",
+                "F80.2 - Transtorno Receptivo da Linguagem": "Transtorno da linguagem receptiva. DSM-5: 315.32 (F80.2). Dificuldade em compreender a linguagem.",
+                "F80.81 - Gagueira Infantil": "Gagueira. DSM-5: 315.35 (F80.81). Disfluência da fala. Necessita fonoterapia, ambiente sem pressão.",
+                
+                # SÍNDROMES GENÉTICAS
+                "Q90 - Síndrome de Down (Trissomia 21)": "Síndrome de Down. Deficiência intelectual variável, características físicas típicas. Necessita estimulação precoce, adaptações curriculares.",
+                "Q93.5 - Síndrome de Cri-du-Chat": "Síndrome Cri-du-chat. Deficiência intelectual, choro característico. Necessita apoio intensivo.",
+                "Q96 - Síndrome de Turner": "Síndrome de Turner. Baixa estatura, dificuldades específicas. Geralmente inteligência normal.",
+                "Q87.1 - Síndrome de Prader-Willi": "Síndrome de Prader-Willi. Hiperfagia, obesidade, dificuldades cognitivas. Necessita controle alimentar.",
+                
+                # TRANSTORNOS EMOCIONAIS E COMPORTAMENTAIS
+                "F41.1 - Transtorno de Ansiedade Generalizada": "TAG. DSM-5: 300.02 (F41.1). Ansiedade excessiva persistente. Responde a técnicas de relaxamento, terapia cognitivo-comportamental.",
+                "F93.0 - Transtorno de Ansiedade de Separação": "Ansiedade de separação. DSM-5: 309.21 (F93.0). Angústia ao separar-se dos cuidadores. Comum em crianças pequenas.",
+                "F40.10 - Fobia Social": "Fobia social. DSM-5: 300.23 (F40.10). Medo intenso de situações sociais. Necessita exposição gradual, suporte psicológico.",
+                "F32 - Episódio Depressivo": "Depressão. DSM-5: 296.2x (F32.x). Tristeza persistente, perda de interesse. Requer acompanhamento psiquiátrico/psicológico.",
+                "F91.1 - Transtorno de Conduta Não Socializado": "Transtorno de conduta. DSM-5: 312.81 (F91.1). Comportamento desafiador, agressividade. Necessita intervenção comportamental.",
+                "F91.3 - Transtorno Desafiador Opositivo": "TOD. DSM-5: 313.81 (F91.3). Padrão de raiva, argumentação, desafio. Responde a limites claros e consistentes.",
+                
+                # TRANSTORNOS MOTORES
+                "F82 - Transtorno do Desenvolvimento da Coordenação": "Dispraxia. DSM-5: 315.4 (F82). Dificuldade motora fina/grossa. Necessita terapia ocupacional, educação física adaptada.",
+                "F95.2 - Síndrome de Tourette": "Síndrome de Tourette. DSM-5: 307.23 (F95.2). Tiques motores e vocais. Necessita compreensão, manejo de estresse.",
+                
+                # OUTROS TRANSTORNOS NEUROLÓGICOS
+                "G40 - Epilepsia": "Epilepsia. Crises convulsivas. Necessita medicação regular, protocolo de emergência, evitar gatilhos (luzes piscantes).",
+                "G43 - Enxaqueca": "Enxaqueca. Dores de cabeça intensas. Necessita ambiente calmo, iluminação adequada, pausas.",
+                "G35 - Esclerose Múltipla": "Esclerose múltipla. Desmielinização. Fadiga, problemas motores. Necessita pausas, acessibilidade.",
+                
+                # TRANSTORNOS ALIMENTARES (mais comum em adolescentes)
+                "F50.0 - Anorexia Nervosa": "Anorexia nervosa. DSM-5: 307.1 (F50.0). Restrição alimentar severa. Requer acompanhamento multidisciplinar urgente.",
+                "F50.2 - Bulimia Nervosa": "Bulimia nervosa. DSM-5: 307.51 (F50.2). Compulsão alimentar seguida de purgação. Necessita tratamento especializado.",
+                
+                # TRANSTORNOS DO SONO
+                "G47.0 - Insônia": "Insônia. Dificuldade para dormir. Afeta concentração e aprendizagem. Necessita higiene do sono.",
+                
+                # TRAUMA
+                "F43.1 - Transtorno de Estresse Pós-Traumático": "TEPT. DSM-5: 309.81 (F43.1). Após evento traumático. Necessita ambiente seguro, psicoterapia especializada.",
+                
+                # OUTROS
+                "F98.0 - Enurese Não Orgânica": "Enurese noturna. DSM-5: 307.6 (F98.0). Micção involuntária. Geralmente resolve espontaneamente.",
+                "F98.1 - Encoprese Não Orgânica": "Encoprese. DSM-5: 307.7 (F98.1). Evacuação involuntária. Necessita avaliação médica.",
+                "F94.0 - Mutismo Seletivo": "Mutismo seletivo. DSM-5: 312.23 (F94.0). Incapacidade de falar em situações específicas. Necessita paciência, não forçar.",
+                "F63.3 - Tricotilomania": "Tricotilomania. DSM-5: 312.39 (F63.3). Arrancar cabelos compulsivamente. Necessita terapia comportamental.",
+            }
+            
+            cid_10_dsm5 = st.selectbox("CID-10 / DSM-5", list(diagnosticos.keys()))
+            
+            if cid_10_dsm5 and cid_10_dsm5 != "":
+                st.text_area("📋 Descrição e Orientações", 
+                           value=diagnosticos[cid_10_dsm5], 
+                           height=150, 
+                           disabled=True,
+                           key="descricao_diagnostico")
+            
+            st.markdown("---")
+            st.markdown("**5.2.2 Medicação**")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                medicacao_uso = st.selectbox("Faz uso de medicação?", ["", "Não", "Sim"])
+                
+            if medicacao_uso == "Sim":
+                with col2:
+                    nome_medicacao = st.text_input("Nome da Medicação", max_chars=200, 
+                                                   placeholder="Ex: Metilfenidato, Risperidona, etc.")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    dosagem_medicacao = st.text_input("Dosagem", max_chars=100, 
+                                                     placeholder="Ex: 10mg, 2x ao dia")
+                    horario_medicacao = st.text_input("Horário de Administração", max_chars=100,
+                                                     placeholder="Ex: 8h e 14h")
+                
+                with col2:
+                    medico_responsavel = st.text_input("Médico Responsável", max_chars=100)
+                    crm_medico = st.text_input("CRM do Médico", max_chars=20)
+                
+                efeitos_esperados = st.text_area(
+                    "Efeitos Esperados da Medicação", 
+                    max_chars=500,
+                    height=100,
+                    placeholder="Descreva os efeitos esperados (ex: melhora na atenção, redução de ansiedade, controle de crises, etc.)"
+                )
+                
+                efeitos_colaterais = st.text_area(
+                    "Possíveis Efeitos Colaterais a Observar",
+                    max_chars=500,
+                    height=100,
+                    placeholder="Descreva efeitos colaterais que a escola deve observar (ex: sonolência, irritabilidade, perda de apetite, etc.)"
+                )
+            else:
+                # Valores vazios se não usa medicação
+                nome_medicacao = ""
+                dosagem_medicacao = ""
+                horario_medicacao = ""
+                medico_responsavel = ""
+                crm_medico = ""
+                efeitos_esperados = ""
+                efeitos_colaterais = ""
+        else:
+            # Valores vazios se não tem deficiência
+            cid_10_dsm5 = ""
+            medicacao_uso = ""
+            nome_medicacao = ""
+            dosagem_medicacao = ""
+            horario_medicacao = ""
+            medico_responsavel = ""
+            crm_medico = ""
+            efeitos_esperados = ""
+            efeitos_colaterais = ""
+        
         st.markdown("**5.3 Recursos Necessários (SAEB/Prova Brasil)**")
         recursos_saeb = st.multiselect("Selecione recursos necessários:", [
             "Prova ampliada (fonte 18)",
@@ -345,6 +503,16 @@ def render_cadastro_geral(data_manager):
                     'atendimentos_especializados': atendimentos_especializados,
                     'recursos_saeb': recursos_saeb_str,
                     'escolarizacao_outro_espaco': escolarizacao_outro_espaco,
+                    # Informações médicas detalhadas
+                    'cid_10_dsm5': cid_10_dsm5,
+                    'medicacao_uso': medicacao_uso,
+                    'nome_medicacao': nome_medicacao,
+                    'dosagem_medicacao': dosagem_medicacao,
+                    'horario_medicacao': horario_medicacao,
+                    'medico_responsavel': medico_responsavel,
+                    'crm_medico': crm_medico,
+                    'efeitos_esperados': efeitos_esperados,
+                    'efeitos_colaterais': efeitos_colaterais,
                     # Histórico escolar
                     'escola_origem': escola_origem,
                     'escola_ano_anterior': escola_ano_anterior,

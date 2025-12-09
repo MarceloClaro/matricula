@@ -53,6 +53,10 @@ class DataManager:
                 'cartao_nacional_sus', 'alergia', 'aluno_deficiencia', 'possui_laudo_medico',
                 'tipo_deficiencia', 'atendimentos_especializados', 'recursos_saeb',
                 'escolarizacao_outro_espaco',
+                # Informações médicas detalhadas (CID-10, DSM-5, medicação)
+                'cid_10_dsm5', 'medicacao_uso', 'nome_medicacao', 'dosagem_medicacao',
+                'horario_medicacao', 'medico_responsavel', 'crm_medico',
+                'efeitos_esperados', 'efeitos_colaterais',
                 # Histórico escolar
                 'escola_origem', 'escola_ano_anterior', 'programas_educacionais',
                 'rendimento_ano_anterior', 'movimento_escolar',

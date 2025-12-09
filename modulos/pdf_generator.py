@@ -219,6 +219,62 @@ def gerar_pdf_aluno(data_manager, aluno_id, incluir_pei=True, incluir_anamnese=T
             ('BACKGROUND', (2, 0), (2, -1), colors.HexColor('#e8f4f8')),
         ]))
         elements.append(table)
+        
+        # Informações Médicas (se aluno tem deficiência)
+        if cadastro.get('aluno_deficiencia') == 'Sim':
+            elements.append(Spacer(1, 0.5*cm))
+            elements.append(Paragraph("INFORMAÇÕES MÉDICAS E DIAGNÓSTICO", heading_style))
+            
+            dados_medicos = [
+                ['Aluno com Deficiência:', 'Sim'],
+                ['Tipo de Deficiência:', cadastro.get('tipo_deficiencia', '')],
+                ['Possui Laudo Médico:', cadastro.get('possui_laudo_medico', '')],
+            ]
+            
+            # Adicionar CID-10/DSM-5 se disponível
+            cid_dsm = cadastro.get('cid_10_dsm5', '')
+            if cid_dsm and cid_dsm.strip():
+                dados_medicos.append(['CID-10 / DSM-5:', cid_dsm])
+            
+            # Informações de medicação
+            if cadastro.get('medicacao_uso') == 'Sim':
+                dados_medicos.extend([
+                    ['─────────────────', '──────────────────────────'],  # Linha separadora
+                    ['Medicação em Uso:', 'Sim'],
+                    ['Nome da Medicação:', cadastro.get('nome_medicacao', '')],
+                    ['Dosagem:', cadastro.get('dosagem_medicacao', '')],
+                    ['Horário:', cadastro.get('horario_medicacao', '')],
+                    ['Médico Responsável:', cadastro.get('medico_responsavel', '')],
+                    ['CRM:', cadastro.get('crm_medico', '')],
+                ])
+                
+                # Efeitos esperados
+                efeitos_esp = cadastro.get('efeitos_esperados', '')
+                if efeitos_esp and efeitos_esp.strip():
+                    dados_medicos.append(['Efeitos Esperados:', efeitos_esp])
+                
+                # Efeitos colaterais
+                efeitos_col = cadastro.get('efeitos_colaterais', '')
+                if efeitos_col and efeitos_col.strip():
+                    dados_medicos.append(['Efeitos Colaterais:', efeitos_col])
+            
+            # Atendimentos e recursos
+            dados_medicos.extend([
+                ['─────────────────', '──────────────────────────'],  # Linha separadora
+                ['Atendimentos Especializados:', cadastro.get('atendimentos_especializados', '')],
+                ['Recursos SAEB:', cadastro.get('recursos_saeb', '')],
+            ])
+            
+            table = Table(dados_medicos, colWidths=[5.5*cm, 13*cm])
+            table.setStyle(TableStyle([
+                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 0), (-1, -1), 9),
+                ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#fff3e0')),
+            ]))
+            elements.append(table)
     
     # PEI
     if incluir_pei:
