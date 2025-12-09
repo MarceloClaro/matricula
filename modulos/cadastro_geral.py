@@ -281,9 +281,10 @@ def render_cadastro_geral(data_manager):
                 # Processar foto se fornecida
                 foto_path = ""
                 if foto is not None:
-                    # TODO: Implementar salvamento de foto
-                    # Por enquanto, apenas registra que foto foi fornecida
-                    foto_path = "pendente_implementacao"
+                    # TODO: Implementar salvamento real de foto em diretório específico
+                    # Por enquanto, deixa vazio para evitar referências incorretas
+                    foto_path = ""
+                    st.info("ℹ️ Upload de foto será implementado em versão futura.")
                 
                 # Converter lista de recursos para string
                 recursos_saeb_str = ", ".join(recursos_saeb) if recursos_saeb else ""
