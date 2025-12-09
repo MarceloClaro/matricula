@@ -15,7 +15,9 @@ class DataManager:
             'cadastro': os.path.join(data_dir, 'cadastro_geral.csv'),
             'pei': os.path.join(data_dir, 'pei.csv'),
             'socioeconomico': os.path.join(data_dir, 'socioeconomico.csv'),
-            'saude': os.path.join(data_dir, 'saude.csv')
+            'saude': os.path.join(data_dir, 'saude.csv'),
+            'questionario_saeb': os.path.join(data_dir, 'questionario_saeb.csv'),
+            'anamnese_pei': os.path.join(data_dir, 'anamnese_pei.csv')
         }
         
         self._init_files()
@@ -66,6 +68,64 @@ class DataManager:
                 'observacoes_saude', 'data_cadastro'
             ])
             df.to_csv(self.files['saude'], index=False)
+        
+        # Questionário SAEB/SPAECE
+        if not os.path.exists(self.files['questionario_saeb']):
+            df = pd.DataFrame(columns=[
+                'id', 'aluno_id', 'sexo', 'idade', 'lingua_familia', 'cor_raca',
+                'deficiencia', 'tea', 'altas_habilidades',
+                'mora_mae', 'mora_pai', 'mora_avo', 'mora_avoh', 'mora_outros',
+                'escolaridade_mae', 'escolaridade_pai',
+                'responsavel_le', 'responsavel_conversa', 'responsavel_incentiva_estudar',
+                'responsavel_incentiva_tarefas', 'responsavel_incentiva_aulas', 
+                'responsavel_participa_reunioes',
+                'bairro_asfalto', 'bairro_agua_tratada', 'bairro_iluminacao',
+                'qtd_geladeira', 'qtd_computador', 'qtd_quartos', 'qtd_televisao',
+                'qtd_banheiro', 'qtd_carro', 'qtd_celular_internet',
+                'casa_tv_internet', 'casa_wifi', 'casa_mesa_estudar', 'casa_microondas',
+                'casa_aspirador', 'casa_maquina_lavar', 'casa_freezer', 'casa_garagem',
+                'tempo_escola', 'transporte_gratuito', 'passe_escolar', 'meio_transporte_principal',
+                'idade_entrada_escola', 'trajetoria_educacao', 'reprovacao', 'abandono',
+                'tempo_estudar', 'tempo_extracurriculares', 'tempo_trabalho_domestico',
+                'tempo_trabalho_remunerado', 'tempo_lazer',
+                'prof_explica', 'prof_pergunta', 'prof_debate', 'prof_grupos',
+                'prof_bullying', 'prof_racismo', 'prof_genero',
+                'escola_interesse', 'escola_motivacao', 'escola_opinioes', 'escola_seguranca',
+                'escola_vontade_prof', 'escola_dificuldade', 'escola_avaliacoes',
+                'escola_prof_acreditam', 'escola_motivacao_continuar',
+                'expectativa_futura', 'data_cadastro'
+            ])
+            df.to_csv(self.files['questionario_saeb'], index=False)
+        
+        # Anamnese Pedagógica PEI
+        if not os.path.exists(self.files['anamnese_pei']):
+            df = pd.DataFrame(columns=[
+                'id', 'aluno_id', 'data_preenchimento', 'filiacao', 'turma_serie',
+                'desenvolvimento_motor', 'coordenacao_motora_fina', 'coordenacao_motora_grossa',
+                'lateralidade', 'equilibrio', 'observacoes_neuro',
+                'atencao_concentracao', 'memoria', 'raciocinio_logico', 'resolucao_problemas',
+                'pensamento_abstrato', 'funcoes_executivas', 'observacoes_cognitivas',
+                'linguagem_oral', 'articulacao', 'vocabulario', 'compreensao_verbal',
+                'expressao_verbal', 'linguagem_escrita', 'observacoes_linguagem',
+                'interacao_social', 'relacionamento_pares', 'relacionamento_professores',
+                'regulacao_emocional', 'autoestima', 'ansiedade', 'impulsividade', 'agressividade',
+                'bullying_vitima', 'bullying_agressor', 'comportamento_opositor', 'autolesao',
+                'fuga_escola', 'isolamento_voluntario', 'observacoes_socioemocionais',
+                'desempenho_portugues', 'desempenho_matematica', 'desempenho_ciencias',
+                'desempenho_historia', 'desempenho_geografia', 'desempenho_ingles',
+                'desempenho_ed_fisica', 'desempenho_artes',
+                'leitura', 'escrita', 'compreensao_leitora', 'producao_textual', 'observacoes_academicas',
+                'adaptacoes_metodologicas', 'adaptacoes_avaliativas', 'recursos_tecnologicos',
+                'intervencoes_pedagogicas',
+                'acompanhamento_psicologia', 'acompanhamento_psicopedagogia', 'acompanhamento_fonoaudiologia',
+                'acompanhamento_terapia_ocupacional', 'acompanhamento_neurologia', 'acompanhamento_psiquiatria',
+                'acompanhamento_assistente_social', 'outros_encaminhamentos',
+                'participacao_familia', 'contexto_familiar', 'fatores_risco', 'fatores_protecao',
+                'metas_curto_prazo', 'metas_medio_prazo', 'metas_longo_prazo', 'estrategias_implementacao',
+                'observacoes_gerais', 'parecer_tecnico', 'profissional_responsavel',
+                'formacao_profissional', 'registro_profissional', 'data_cadastro'
+            ])
+            df.to_csv(self.files['anamnese_pei'], index=False)
     
     def get_data(self, tipo):
         """Retorna dados do tipo especificado"""
@@ -197,5 +257,19 @@ class DataManager:
             saude = saude_df[saude_df['aluno_id'] == aluno_id]
             if len(saude) > 0:
                 dados['saude'] = saude.iloc[0].to_dict()
+        
+        # Questionário SAEB
+        saeb_df = self.get_data('questionario_saeb')
+        if len(saeb_df) > 0:
+            saeb = saeb_df[saeb_df['aluno_id'] == aluno_id]
+            if len(saeb) > 0:
+                dados['questionario_saeb'] = saeb.iloc[0].to_dict()
+        
+        # Anamnese Pedagógica PEI
+        anamnese_df = self.get_data('anamnese_pei')
+        if len(anamnese_df) > 0:
+            anamnese = anamnese_df[anamnese_df['aluno_id'] == aluno_id]
+            if len(anamnese) > 0:
+                dados['anamnese_pei'] = anamnese.iloc[0].to_dict()
         
         return dados

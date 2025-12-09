@@ -16,6 +16,7 @@ def render_dashboard(data_manager):
     df_pei = data_manager.get_data('pei')
     df_socio = data_manager.get_data('socioeconomico')
     df_saude = data_manager.get_data('saude')
+    df_saeb = data_manager.get_data('questionario_saeb')
     
     # Verificar se há dados
     if len(df_cadastro) == 0:
@@ -55,7 +56,8 @@ def render_dashboard(data_manager):
             tem_pei = len(df_pei[df_pei['aluno_id'] == aluno_id]) > 0
             tem_socio = len(df_socio[df_socio['aluno_id'] == aluno_id]) > 0
             tem_saude = len(df_saude[df_saude['aluno_id'] == aluno_id]) > 0
-            if not (tem_pei and tem_socio and tem_saude):
+            tem_saeb = len(df_saeb[df_saeb['aluno_id'] == aluno_id]) > 0
+            if not (tem_pei and tem_socio and tem_saude and tem_saeb):
                 completos -= 1
         
         st.metric(
@@ -261,6 +263,8 @@ def render_dashboard(data_manager):
             faltando.append("PEI")
         if len(df_socio[df_socio['aluno_id'] == aluno_id]) == 0:
             faltando.append("Socioeconômico")
+        if len(df_saeb[df_saeb['aluno_id'] == aluno_id]) == 0:
+            faltando.append("Quest. SAEB")
         if len(df_saude[df_saude['aluno_id'] == aluno_id]) == 0:
             faltando.append("Saúde")
         
