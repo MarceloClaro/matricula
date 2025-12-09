@@ -46,8 +46,6 @@ Thumbs.db
 # Backups
 backups/
 backup_before_restore/
-temp_restore/
-temp_upload.zip
 
 # Temp files
 *.tmp

@@ -3,6 +3,7 @@ Módulo de Backup e Restauração de Dados
 """
 import streamlit as st
 import os
+import tempfile
 from datetime import datetime
 
 def render_backup(data_manager):
@@ -109,12 +110,18 @@ def render_backup(data_manager):
         uploaded_file = st.file_uploader(
             "Selecione o arquivo de backup (ZIP)",
             type=['zip'],
-            help="Faça upload de um arquivo de backup criado anteriormente"
+            help="Faça upload de um arquivo de backup criado anteriormente. Limite recomendado: 200MB"
         )
         
         if uploaded_file is not None:
+            file_size_mb = uploaded_file.size / (1024 * 1024)
+            
             st.success(f"📁 Arquivo selecionado: **{uploaded_file.name}**")
-            st.info(f"Tamanho: {uploaded_file.size / 1024:.2f} KB")
+            st.info(f"Tamanho: {file_size_mb:.2f} MB")
+            
+            # Aviso para arquivos grandes
+            if file_size_mb > 100:
+                st.warning("⚠️ Arquivo grande detectado. A restauração pode demorar alguns minutos.")
             
             st.markdown("---")
             
@@ -131,10 +138,10 @@ def render_backup(data_manager):
                     if st.button("🔄 Restaurar Backup", type="primary", use_container_width=True):
                         with st.spinner("Restaurando backup... Aguarde..."):
                             try:
-                                # Salva arquivo temporariamente
-                                temp_path = os.path.join(data_manager.data_dir, '..', 'temp_upload.zip')
-                                with open(temp_path, 'wb') as f:
-                                    f.write(uploaded_file.getbuffer())
+                                # Salva arquivo temporariamente de forma segura
+                                with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as tmp_file:
+                                    tmp_file.write(uploaded_file.getbuffer())
+                                    temp_path = tmp_file.name
                                 
                                 # Restaura o backup
                                 sucesso, mensagem = data_manager.restore_backup(temp_path)
