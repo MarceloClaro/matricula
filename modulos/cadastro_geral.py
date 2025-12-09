@@ -216,7 +216,11 @@ def render_lista_alunos(data_manager):
                 continue
         
         df_filtrado['aluno_especial_pei'] = df_filtrado['id'].apply(
-            lambda id_aluno: alunos_com_pei.get(int(id_aluno), 'Não') if pd.notna(id_aluno) else 'Não'
+            lambda id_aluno: (
+                alunos_com_pei.get(int(id_aluno), 'Não') 
+                if pd.notna(id_aluno) and str(id_aluno).isdigit() 
+                else 'Não'
+            )
         )
     else:
         df_filtrado['aluno_especial_pei'] = 'Não'
