@@ -146,17 +146,20 @@ def render_editar(data_manager, tipo, tipo_registro):
                 ["1º Ano", "2º Ano", "3º Ano", "4º Ano", "5º Ano", 
                  "6º Ano", "7º Ano", "8º Ano", "9º Ano"],
                 index=["1º Ano", "2º Ano", "3º Ano", "4º Ano", "5º Ano", 
-                       "6º Ano", "7º Ano", "8º Ano", "9º Ano"].index(registro.get('ano_escolar', '1º Ano'))
+                       "6º Ano", "7º Ano", "8º Ano", "9º Ano"].index(registro.get('ano_escolar', '1º Ano')),
+                key="editar_ano_escolar"
             )
             campos_editados['turno'] = st.selectbox(
                 "Turno",
                 ["Matutino", "Vespertino", "Integral"],
-                index=["Matutino", "Vespertino", "Integral"].index(registro.get('turno', 'Matutino'))
+                index=["Matutino", "Vespertino", "Integral"].index(registro.get('turno', 'Matutino')),
+                key="editar_turno"
             )
             campos_editados['status'] = st.selectbox(
                 "Status",
                 ["Ativo", "Aguardando Documentação", "Cancelado"],
-                index=["Ativo", "Aguardando Documentação", "Cancelado"].index(registro.get('status', 'Ativo'))
+                index=["Ativo", "Aguardando Documentação", "Cancelado"].index(registro.get('status', 'Ativo')),
+                key="editar_status"
             )
         
         elif tipo == 'pei':
@@ -180,7 +183,8 @@ def render_editar(data_manager, tipo, tipo_registro):
                 index=["Até 1 salário mínimo", "De 1 a 2 salários mínimos", 
                        "De 2 a 3 salários mínimos", "De 3 a 5 salários mínimos",
                        "De 5 a 10 salários mínimos", "Acima de 10 salários mínimos"].index(
-                           registro.get('renda_familiar', 'Até 1 salário mínimo'))
+                           registro.get('renda_familiar', 'Até 1 salário mínimo')),
+                key="editar_renda_familiar"
             )
             campos_editados['possui_internet'] = st.radio(
                 "Possui Internet?",
@@ -193,7 +197,8 @@ def render_editar(data_manager, tipo, tipo_registro):
                 "Tipo Sanguíneo",
                 ["A", "B", "AB", "O", "Não informado"],
                 index=["A", "B", "AB", "O", "Não informado"].index(
-                    registro.get('tipo_sanguineo', 'Não informado'))
+                    registro.get('tipo_sanguineo', 'Não informado')),
+                key="editar_tipo_sanguineo"
             )
             campos_editados['contato_emergencia'] = st.text_input(
                 "Contato de Emergência",

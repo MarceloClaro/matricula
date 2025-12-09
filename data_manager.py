@@ -131,7 +131,13 @@ class DataManager:
         """Retorna dados do tipo especificado"""
         if tipo in self.files:
             try:
-                df = pd.read_csv(self.files[tipo])
+                # Read CSV and keep string columns as strings (avoid auto-conversion to float for NaN)
+                df = pd.read_csv(self.files[tipo], dtype=str, keep_default_na=False)
+                # Convert 'id' and numeric columns back to appropriate types
+                if 'id' in df.columns and len(df) > 0:
+                    df['id'] = pd.to_numeric(df['id'], errors='coerce').fillna(0).astype(int)
+                if 'aluno_id' in df.columns and len(df) > 0:
+                    df['aluno_id'] = pd.to_numeric(df['aluno_id'], errors='coerce').fillna(0).astype(int)
                 return df
             except (FileNotFoundError, pd.errors.EmptyDataError):
                 return pd.DataFrame()
