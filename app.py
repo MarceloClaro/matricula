@@ -4,7 +4,7 @@ Aplicação principal em Streamlit
 """
 import streamlit as st
 from data_manager import DataManager
-from modulos import cadastro_geral, pei, socioeconomico, saude, questionario_saeb, dashboard, crud, busca, pdf_generator, export_zip
+from modulos import cadastro_geral, pei, socioeconomico, saude, questionario_saeb, anamnese_pei, dashboard, crud, busca, pdf_generator, export_zip
 
 # Configuração da página
 st.set_page_config(
@@ -48,6 +48,7 @@ with st.sidebar:
             "🏠 Início",
             "📝 Cadastro Geral",
             "♿ PEI",
+            "🧠 Anamnese Pedagógica (PEI)",
             "💰 Socioeconômico",
             "📋 Questionário SAEB",
             "🏥 Saúde",
@@ -158,6 +159,9 @@ elif menu_opcao == "📝 Cadastro Geral":
 
 elif menu_opcao == "♿ PEI":
     pei.render_pei(data_manager)
+
+elif menu_opcao == "🧠 Anamnese Pedagógica (PEI)":
+    anamnese_pei.render_anamnese_pei(data_manager)
 
 elif menu_opcao == "💰 Socioeconômico":
     socioeconomico.render_socioeconomico(data_manager)
