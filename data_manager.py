@@ -35,10 +35,33 @@ class DataManager:
         # Cadastro Geral
         if not os.path.exists(self.files['cadastro']):
             df = pd.DataFrame(columns=[
-                'id', 'nome_completo', 'data_nascimento', 'cpf', 'rg', 
-                'nome_mae', 'nome_pai', 'telefone', 'email',
-                'endereco', 'numero', 'complemento', 'bairro', 'cidade', 'uf', 'cep',
-                'escola_origem', 'ano_escolar', 'turno', 'data_matricula', 'status'
+                # Identificação básica
+                'id', 'nome_completo', 'nome_social', 'data_nascimento', 'cpf', 'codigo_inep', 
+                'matricula', 'sexo', 'cor_raca', 'telefone', 'email', 'nis',
+                # Nacionalidade
+                'nacionalidade', 'uf_nascimento', 'cidade_nascimento', 'pais_nacionalidade',
+                # Filiação
+                'nome_mae', 'cpf_mae', 'profissao_mae', 
+                'nome_pai', 'cpf_pai', 'profissao_pai',
+                # Documentação civil
+                'rg', 'numero_documento', 'orgao_emissor', 'uf_emissor', 'data_expedicao',
+                'modelo_certidao', 'tipo_certidao', 'cartao_sus', 'documento_estrangeiro',
+                'justificativa_documentacao',
+                # Endereço
+                'cep', 'bairro', 'endereco', 'numero', 'complemento', 'zona', 'uf', 'cidade',
+                # Saúde
+                'cartao_nacional_sus', 'alergia', 'aluno_deficiencia', 'possui_laudo_medico',
+                'tipo_deficiencia', 'atendimentos_especializados', 'recursos_saeb',
+                'escolarizacao_outro_espaco',
+                # Histórico escolar
+                'escola_origem', 'escola_ano_anterior', 'programas_educacionais',
+                'rendimento_ano_anterior', 'movimento_escolar',
+                # Dados escolares atuais
+                'ano_escolar', 'turno', 'status',
+                # Transporte
+                'utiliza_transporte', 'poder_responsavel_transporte', 'tipo_veiculo',
+                # Metadados
+                'data_matricula', 'foto_path'
             ])
             df.to_csv(self.files['cadastro'], index=False)
         
