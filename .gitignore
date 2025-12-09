@@ -43,6 +43,12 @@ Thumbs.db
 # Data (optional - uncomment if you want to ignore CSV data)
 # data/*.csv
 
+# Backups
+backups/
+backup_before_restore/
+temp_restore/
+temp_upload.zip
+
 # Temp files
 *.tmp
 *.log

@@ -3,6 +3,8 @@ Módulo de gerenciamento de dados com persistência em CSV
 """
 import pandas as pd
 import os
+import zipfile
+import shutil
 from datetime import datetime
 
 class DataManager:
@@ -279,3 +281,94 @@ class DataManager:
                 dados['anamnese_pei'] = anamnese.iloc[0].to_dict()
         
         return dados
+    
+    def create_backup(self, backup_path=None):
+        """Cria backup de todos os arquivos CSV em formato ZIP"""
+        if backup_path is None:
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            backup_filename = f'backup_matricula_{timestamp}.zip'
+            backup_path = os.path.join(self.data_dir, '..', 'backups', backup_filename)
+        
+        # Cria diretório de backup se não existir
+        backup_dir = os.path.dirname(backup_path)
+        if not os.path.exists(backup_dir):
+            os.makedirs(backup_dir)
+        
+        # Cria arquivo ZIP com todos os CSVs
+        with zipfile.ZipFile(backup_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for tipo, filepath in self.files.items():
+                if os.path.exists(filepath):
+                    # Adiciona arquivo ao ZIP mantendo apenas o nome do arquivo
+                    zipf.write(filepath, os.path.basename(filepath))
+        
+        return backup_path
+    
+    def restore_backup(self, backup_file):
+        """Restaura backup de um arquivo ZIP"""
+        try:
+            # Cria diretório temporário para extração
+            temp_dir = os.path.join(self.data_dir, '..', 'temp_restore')
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+            os.makedirs(temp_dir)
+            
+            # Extrai arquivos do ZIP
+            with zipfile.ZipFile(backup_file, 'r') as zipf:
+                zipf.extractall(temp_dir)
+            
+            # Valida que todos os arquivos esperados estão presentes
+            expected_files = [os.path.basename(f) for f in self.files.values()]
+            extracted_files = os.listdir(temp_dir)
+            
+            missing_files = [f for f in expected_files if f not in extracted_files]
+            if missing_files:
+                shutil.rmtree(temp_dir)
+                return False, f"Arquivos faltando no backup: {', '.join(missing_files)}"
+            
+            # Faz backup dos arquivos atuais antes de substituir
+            backup_current_dir = os.path.join(self.data_dir, '..', 'backup_before_restore')
+            if os.path.exists(backup_current_dir):
+                shutil.rmtree(backup_current_dir)
+            os.makedirs(backup_current_dir)
+            
+            for filepath in self.files.values():
+                if os.path.exists(filepath):
+                    shutil.copy2(filepath, backup_current_dir)
+            
+            # Copia arquivos restaurados para o diretório de dados
+            for filename in expected_files:
+                src = os.path.join(temp_dir, filename)
+                dst = os.path.join(self.data_dir, filename)
+                shutil.copy2(src, dst)
+            
+            # Remove diretório temporário
+            shutil.rmtree(temp_dir)
+            
+            return True, "Backup restaurado com sucesso!"
+            
+        except Exception as e:
+            return False, f"Erro ao restaurar backup: {str(e)}"
+    
+    def list_backups(self, backup_dir=None):
+        """Lista todos os backups disponíveis"""
+        if backup_dir is None:
+            backup_dir = os.path.join(self.data_dir, '..', 'backups')
+        
+        if not os.path.exists(backup_dir):
+            return []
+        
+        backups = []
+        for filename in os.listdir(backup_dir):
+            if filename.startswith('backup_matricula_') and filename.endswith('.zip'):
+                filepath = os.path.join(backup_dir, filename)
+                stat = os.stat(filepath)
+                backups.append({
+                    'filename': filename,
+                    'filepath': filepath,
+                    'size': stat.st_size,
+                    'date': datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
+                })
+        
+        # Ordena por data (mais recente primeiro)
+        backups.sort(key=lambda x: x['date'], reverse=True)
+        return backups
