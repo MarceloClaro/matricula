@@ -1,0 +1,4 @@
+id,nome_completo,data_nascimento,cpf,rg,nome_mae,nome_pai,telefone,email,endereco,numero,complemento,bairro,cidade,uf,cep,escola_origem,ano_escolar,turno,data_matricula,status
+1,João Silva Santos,2010-05-15,123.456.789-00,12.345.678-9,Maria Silva Santos,José Silva Santos,(11) 98765-4321,joao.silva@email.com,Rua das Flores,123,Apto 45,Centro,São Paulo,SP,01234-567,Escola Municipal ABC,6º Ano,Matutino,2025-12-09,Ativo
+2,Ana Paula Oliveira,2011-08-20,,,Carla Oliveira,,(11) 91234-5678,,Avenida Brasil,456,,Jardim das Rosas,São Paulo,SP,02345-678,,5º Ano,Vespertino,2025-12-09,Ativo
+3,Pedro Henrique Costa,2009-12-10,,,Sandra Costa,,(11) 94567-8901,,Rua São João,789,,Vila Nova,Guarulhos,SP,07000-000,,7º Ano,Matutino,2025-12-09,Ativo
