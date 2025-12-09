@@ -70,7 +70,9 @@ def render_pdf_generator(data_manager):
                     
                     # Obter dados do aluno para nome do arquivo
                     aluno = data_manager.get_record('cadastro', aluno_id)
-                    nome_arquivo = f"ficha_matricula_{aluno['nome_completo'].replace(' ', '_')}_{aluno_id}.pdf"
+                    # Sanitizar nome do arquivo removendo caracteres especiais
+                    nome_limpo = "".join(c for c in aluno['nome_completo'] if c.isalnum() or c in (' ', '_')).strip().replace(' ', '_')
+                    nome_arquivo = f"ficha_matricula_{nome_limpo}_{aluno_id}.pdf"
                     
                     st.download_button(
                         label="📥 Baixar PDF",

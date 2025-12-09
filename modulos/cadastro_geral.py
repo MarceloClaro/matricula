@@ -492,7 +492,11 @@ def render_lista_alunos(data_manager):
         gerar_pdf_button = st.button("🖨️ Gerar PDF", use_container_width=True, key="btn_pdf_lista")
     
     if gerar_pdf_button and aluno_pdf_selecionado != "Selecione um aluno para gerar PDF":
-        aluno_id_pdf = int(aluno_pdf_selecionado.split(" - ")[0])
+        try:
+            aluno_id_pdf = int(aluno_pdf_selecionado.split(" - ")[0])
+        except (ValueError, IndexError):
+            st.error("❌ Formato de seleção inválido")
+            return
         
         with st.spinner("Gerando PDF..."):
             try:
@@ -515,7 +519,9 @@ def render_lista_alunos(data_manager):
                     
                     # Obter dados do aluno para nome do arquivo
                     aluno_data = data_manager.get_record('cadastro', aluno_id_pdf)
-                    nome_arquivo = f"ficha_matricula_{aluno_data['nome_completo'].replace(' ', '_')}_{aluno_id_pdf}.pdf"
+                    # Sanitizar nome do arquivo removendo caracteres especiais
+                    nome_limpo = "".join(c for c in aluno_data['nome_completo'] if c.isalnum() or c in (' ', '_')).strip().replace(' ', '_')
+                    nome_arquivo = f"ficha_matricula_{nome_limpo}_{aluno_id_pdf}.pdf"
                     
                     st.download_button(
                         label="📥 Baixar PDF",
