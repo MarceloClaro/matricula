@@ -8,6 +8,7 @@ Sistema completo de gerenciamento de matrículas escolares desenvolvido em Strea
 - **Cadastro Geral**: Dados pessoais, endereço e informações escolares
 - **PEI**: Plano Educacional Individualizado para alunos com necessidades especiais
 - **Socioeconômico**: Questionário completo sobre situação socioeconômica familiar
+- **Questionário SAEB/SPAECE**: Questionário completo do aluno baseado no SAEB/SPAECE com 13 seções
 - **Saúde**: Ficha de saúde com dados médicos e contato de emergência
 
 ### Gestão e Análise
@@ -60,6 +61,7 @@ matricula/
 │   ├── cadastro_geral.py      # Módulo de cadastro geral
 │   ├── pei.py                 # Módulo PEI
 │   ├── socioeconomico.py      # Módulo socioeconômico
+│   ├── questionario_saeb.py   # Módulo questionário SAEB/SPAECE
 │   ├── saude.py               # Módulo de saúde
 │   ├── dashboard.py           # Dashboard com gráficos
 │   ├── crud.py                # Gerenciamento CRUD
@@ -70,6 +72,7 @@ matricula/
     ├── cadastro_geral.csv
     ├── pei.csv
     ├── socioeconomico.csv
+    ├── questionario_saeb.csv
     └── saude.csv
 ```
 
@@ -79,6 +82,7 @@ Os dados são armazenados em arquivos CSV na pasta `data/`:
 - **cadastro_geral.csv**: Dados pessoais e escolares dos alunos
 - **pei.csv**: Informações do Plano Educacional Individualizado
 - **socioeconomico.csv**: Dados socioeconômicos
+- **questionario_saeb.csv**: Questionário SAEB/SPAECE do aluno
 - **saude.csv**: Informações de saúde
 
 Os arquivos são criados automaticamente na primeira execução.
@@ -129,10 +133,28 @@ Permite exportar:
 ## 📝 Como Usar
 
 1. **Cadastrar Alunos**: Acesse "Cadastro Geral" e preencha os dados
-2. **Completar Informações**: Preencha PEI, Socioeconômico e Saúde para cada aluno
+2. **Completar Informações**: Preencha PEI, Socioeconômico, Questionário SAEB e Saúde para cada aluno
 3. **Visualizar Estatísticas**: Acesse o Dashboard
 4. **Buscar Alunos**: Use a busca inteligente
 5. **Gerar Documentos**: Crie PDFs individuais ou exportação em lote
+
+### 📋 Questionário SAEB/SPAECE
+
+O Questionário SAEB/SPAECE inclui 13 seções completas:
+
+1. **Identificação**: Informações básicas do aluno
+2. **Informações Pessoais**: Sexo, idade, língua falada, cor/raça
+3. **Informações de Inclusão**: Deficiência, TEA, altas habilidades
+4. **Composição Familiar**: Quem mora com o aluno e escolaridade dos responsáveis
+5. **Rotina Familiar**: Apoio dos responsáveis
+6. **Condições do Bairro**: Infraestrutura do bairro
+7. **Condições da Casa**: Bens e recursos disponíveis
+8. **Trajeto à Escola**: Tempo e meio de transporte
+9. **Histórico Escolar**: Trajetória educacional
+10. **Uso do Tempo**: Como o aluno distribui seu tempo
+11. **Práticas Pedagógicas**: Percepção sobre os professores
+12. **Percepção da Escola**: Avaliação do ambiente escolar
+13. **Expectativas Futuras**: Planos após conclusão do ano
 
 ## 🔒 Segurança
 
