@@ -161,7 +161,7 @@ def render_backup(data_manager):
                                 if temp_path and os.path.exists(temp_path):
                                     try:
                                         os.remove(temp_path)
-                                    except:
+                                    except (OSError, FileNotFoundError):
                                         pass  # Ignora erros ao remover arquivo temporário
                 
                 with col2:
