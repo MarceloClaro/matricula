@@ -204,14 +204,19 @@ def render_lista_alunos(data_manager):
     
     # Adicionar coluna indicando se é aluno especial com PEI
     if len(df_pei) > 0:
-        # Criar dicionário de alunos com PEI
+        # Criar dicionário de alunos com PEI com validação de tipo
         alunos_com_pei = {}
         for _, pei_row in df_pei.iterrows():
-            if pei_row['necessidade_especial'] == 'Sim':
-                alunos_com_pei[int(pei_row['aluno_id'])] = 'Sim'
+            try:
+                if pei_row['necessidade_especial'] == 'Sim':
+                    aluno_id = int(pei_row['aluno_id'])
+                    alunos_com_pei[aluno_id] = 'Sim'
+            except (ValueError, TypeError):
+                # Ignora registros com IDs inválidos
+                continue
         
         df_filtrado['aluno_especial_pei'] = df_filtrado['id'].apply(
-            lambda id_aluno: alunos_com_pei.get(int(id_aluno), 'Não')
+            lambda id_aluno: alunos_com_pei.get(int(id_aluno), 'Não') if pd.notna(id_aluno) else 'Não'
         )
     else:
         df_filtrado['aluno_especial_pei'] = 'Não'
