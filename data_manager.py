@@ -11,6 +11,9 @@ from datetime import datetime
 class DataManager:
     def __init__(self, data_dir='data'):
         self.data_dir = data_dir
+        self.backup_dir = os.path.join(data_dir, '..', 'backups')
+        self.backup_before_restore_dir = os.path.join(data_dir, '..', 'backup_before_restore')
+        
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
         
@@ -297,7 +300,7 @@ class DataManager:
         if backup_path is None:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             backup_filename = f'backup_matricula_{timestamp}.zip'
-            backup_path = os.path.join(self.data_dir, '..', 'backups', backup_filename)
+            backup_path = os.path.join(self.backup_dir, backup_filename)
         
         # Cria diretório de backup se não existir
         backup_dir = os.path.dirname(backup_path)
@@ -354,14 +357,13 @@ class DataManager:
                         return False, f"Arquivo CSV inválido ({filename}): {str(e)}"
                 
                 # Faz backup dos arquivos atuais antes de substituir
-                backup_current_dir = os.path.join(self.data_dir, '..', 'backup_before_restore')
-                if os.path.exists(backup_current_dir):
-                    shutil.rmtree(backup_current_dir)
-                os.makedirs(backup_current_dir)
+                if os.path.exists(self.backup_before_restore_dir):
+                    shutil.rmtree(self.backup_before_restore_dir)
+                os.makedirs(self.backup_before_restore_dir)
                 
                 for filepath in self.files.values():
                     if os.path.exists(filepath):
-                        shutil.copy2(filepath, backup_current_dir)
+                        shutil.copy2(filepath, self.backup_before_restore_dir)
                 
                 # Copia arquivos restaurados para o diretório de dados
                 for filename in expected_files:
@@ -396,7 +398,7 @@ class DataManager:
                   - date (str): Data de criação formatada
         """
         if backup_dir is None:
-            backup_dir = os.path.join(self.data_dir, '..', 'backups')
+            backup_dir = self.backup_dir
         
         if not os.path.exists(backup_dir):
             return []
