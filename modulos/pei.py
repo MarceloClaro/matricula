@@ -51,12 +51,19 @@ def render_pei(data_manager):
         )
         
         if necessidade_especial == "Sim":
+            # Handle tipo_deficiencia safely (can be NaN/float from CSV)
+            tipo_def_value = pei_atual.get('tipo_deficiencia', '')
+            if pd.isna(tipo_def_value) or not tipo_def_value:
+                tipo_def_default = []
+            else:
+                tipo_def_default = str(tipo_def_value).split(', ')
+            
             tipo_deficiencia = st.multiselect(
                 "Tipo de Deficiência *",
                 ["Deficiência Física", "Deficiência Visual", "Deficiência Auditiva", 
                  "Deficiência Intelectual", "Transtorno do Espectro Autista (TEA)", 
                  "Deficiência Múltipla", "Altas Habilidades/Superdotação", "Outros"],
-                default=pei_atual.get('tipo_deficiencia', '').split(', ') if pei_atual.get('tipo_deficiencia') else []
+                default=tipo_def_default
             )
             
             st.subheader("Laudo Médico")
@@ -101,12 +108,19 @@ def render_pei(data_manager):
             
             st.subheader("Apoio Pedagógico")
             
+            # Handle apoio_necessario safely (can be NaN/float from CSV)
+            apoio_value = pei_atual.get('apoio_necessario', '')
+            if pd.isna(apoio_value) or not apoio_value:
+                apoio_default = []
+            else:
+                apoio_default = str(apoio_value).split(', ')
+            
             apoio_necessario = st.multiselect(
                 "Tipo de Apoio Necessário",
                 ["Sala de Recursos Multifuncionais", "Professor de Apoio", 
                  "Intérprete de Libras", "Cuidador", "Tutor", 
                  "Tecnologias Assistivas", "Outros"],
-                default=pei_atual.get('apoio_necessario', '').split(', ') if pei_atual.get('apoio_necessario') else []
+                default=apoio_default
             )
             
             adaptacao_curricular = st.text_area(
