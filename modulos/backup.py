@@ -23,7 +23,7 @@ def render_backup(data_manager):
     
     st.markdown("---")
     
-    # Duas abas principais
+    # Três abas principais
     tab1, tab2, tab3 = st.tabs(["📥 Criar Backup", "📤 Restaurar Backup", "📋 Gerenciar Backups"])
     
     # ABA 1: Criar Backup
@@ -76,9 +76,10 @@ def render_backup(data_manager):
                         
                         # Botão para download
                         with open(backup_path, 'rb') as f:
+                            backup_data = f.read()
                             st.download_button(
                                 label="⬇️ Baixar Backup",
-                                data=f,
+                                data=backup_data,
                                 file_name=os.path.basename(backup_path),
                                 mime="application/zip",
                                 use_container_width=True
@@ -184,9 +185,10 @@ def render_backup(data_manager):
                         # Botão de download
                         try:
                             with open(backup['filepath'], 'rb') as f:
+                                backup_data = f.read()
                                 st.download_button(
                                     label="⬇️ Baixar",
-                                    data=f,
+                                    data=backup_data,
                                     file_name=backup['filename'],
                                     mime="application/zip",
                                     key=f"download_{idx}",

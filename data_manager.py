@@ -325,6 +325,19 @@ class DataManager:
                 shutil.rmtree(temp_dir)
                 return False, f"Arquivos faltando no backup: {', '.join(missing_files)}"
             
+            # Valida que os arquivos extraídos são CSVs válidos
+            for filename in expected_files:
+                filepath = os.path.join(temp_dir, filename)
+                if not os.path.exists(filepath):
+                    shutil.rmtree(temp_dir)
+                    return False, f"Arquivo não encontrado: {filename}"
+                try:
+                    # Tenta ler o arquivo como CSV para validar integridade
+                    pd.read_csv(filepath, nrows=0)
+                except Exception as e:
+                    shutil.rmtree(temp_dir)
+                    return False, f"Arquivo CSV inválido ({filename}): {str(e)}"
+            
             # Faz backup dos arquivos atuais antes de substituir
             backup_current_dir = os.path.join(self.data_dir, '..', 'backup_before_restore')
             if os.path.exists(backup_current_dir):
