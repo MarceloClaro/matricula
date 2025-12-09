@@ -1,1 +1,2 @@
-This is not a valid CSV file!!!
+This is not a valid CSV file!!!,aluno_id,necessidade_especial,tipo_deficiencia,laudo_medico,data_laudo,cid,medicacao,restricoes,apoio_necessario,adaptacao_curricular,acompanhamento_especializado,recursos_necessarios,observacoes,id
+,1.0,Sim,Deficiência Auditiva,Sim,2024-01-15,H90.3,Não,Usar aparelho auditivo,Intérprete de Libras,Sim,Fonoaudiologia,"Aparelho auditivo, material visual",Aluno participa bem das atividades com apoio,1.0

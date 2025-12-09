@@ -158,6 +158,9 @@ def render_lista_alunos(data_manager):
         st.info("Nenhum aluno cadastrado ainda.")
         return
     
+    # Obter dados do PEI para verificar alunos especiais
+    df_pei = data_manager.get_data('pei')
+    
     # Filtros
     col1, col2, col3 = st.columns(3)
     
@@ -185,11 +188,39 @@ def render_lista_alunos(data_manager):
     if filtro_turno != "Todos":
         df_filtrado = df_filtrado[df_filtrado['turno'] == filtro_turno]
     
+    # Adicionar coluna de responsáveis
+    df_filtrado['responsaveis'] = df_filtrado.apply(
+        lambda row: f"{row['nome_mae']}" + (f" / {row['nome_pai']}" if row['nome_pai'] and str(row['nome_pai']).strip() != '' else ""),
+        axis=1
+    )
+    
+    # Adicionar coluna de endereço completo
+    df_filtrado['endereco_completo'] = df_filtrado.apply(
+        lambda row: f"{row['endereco']}, {row['numero']}" + 
+                   (f" - {row['complemento']}" if row['complemento'] and str(row['complemento']).strip() != '' else "") +
+                   f" - {row['bairro']}, {row['cidade']}/{row['uf']}",
+        axis=1
+    )
+    
+    # Adicionar coluna indicando se é aluno especial com PEI
+    if len(df_pei) > 0:
+        # Criar dicionário de alunos com PEI
+        alunos_com_pei = {}
+        for _, pei_row in df_pei.iterrows():
+            if pei_row['necessidade_especial'] == 'Sim':
+                alunos_com_pei[int(pei_row['aluno_id'])] = 'Sim'
+        
+        df_filtrado['aluno_especial_pei'] = df_filtrado['id'].apply(
+            lambda id_aluno: alunos_com_pei.get(int(id_aluno), 'Não')
+        )
+    else:
+        df_filtrado['aluno_especial_pei'] = 'Não'
+    
     # Mostrar dados
     st.markdown(f"**Total de alunos:** {len(df_filtrado)}")
     
     # Selecionar colunas para exibição
-    colunas_exibir = ['id', 'nome_completo', 'data_nascimento', 'ano_escolar', 
-                      'turno', 'telefone', 'status']
+    colunas_exibir = ['id', 'nome_completo', 'responsaveis', 'endereco_completo', 
+                      'ano_escolar', 'turno', 'telefone', 'aluno_especial_pei', 'status']
     
     st.dataframe(df_filtrado[colunas_exibir], use_container_width=True)
