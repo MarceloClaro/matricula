@@ -137,6 +137,7 @@ def render_backup(data_manager):
                 with col1:
                     if st.button("🔄 Restaurar Backup", type="primary", use_container_width=True):
                         with st.spinner("Restaurando backup... Aguarde..."):
+                            temp_path = None
                             try:
                                 # Salva arquivo temporariamente de forma segura
                                 with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as tmp_file:
@@ -145,10 +146,6 @@ def render_backup(data_manager):
                                 
                                 # Restaura o backup
                                 sucesso, mensagem = data_manager.restore_backup(temp_path)
-                                
-                                # Remove arquivo temporário
-                                if os.path.exists(temp_path):
-                                    os.remove(temp_path)
                                 
                                 if sucesso:
                                     st.success(f"✅ {mensagem}")
@@ -159,6 +156,13 @@ def render_backup(data_manager):
                                     
                             except Exception as e:
                                 st.error(f"❌ Erro ao restaurar backup: {str(e)}")
+                            finally:
+                                # Remove arquivo temporário sempre, mesmo se houver erro
+                                if temp_path and os.path.exists(temp_path):
+                                    try:
+                                        os.remove(temp_path)
+                                    except:
+                                        pass  # Ignora erros ao remover arquivo temporário
                 
                 with col2:
                     if st.button("❌ Cancelar", use_container_width=True):

@@ -11,8 +11,10 @@ from datetime import datetime
 class DataManager:
     def __init__(self, data_dir='data'):
         self.data_dir = data_dir
-        self.backup_dir = os.path.join(data_dir, '..', 'backups')
-        self.backup_before_restore_dir = os.path.join(data_dir, '..', 'backup_before_restore')
+        # Use absolute paths to avoid issues with relative paths
+        base_dir = os.path.dirname(os.path.abspath(data_dir))
+        self.backup_dir = os.path.join(base_dir, 'backups')
+        self.backup_before_restore_dir = os.path.join(base_dir, 'backup_before_restore')
         
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
@@ -357,9 +359,9 @@ class DataManager:
                         return False, f"Arquivo CSV inválido ({filename}): {str(e)}"
                 
                 # Faz backup dos arquivos atuais antes de substituir
-                if os.path.exists(self.backup_before_restore_dir):
-                    shutil.rmtree(self.backup_before_restore_dir)
-                os.makedirs(self.backup_before_restore_dir)
+                # Usa método mais seguro para recriar diretório
+                shutil.rmtree(self.backup_before_restore_dir, ignore_errors=True)
+                os.makedirs(self.backup_before_restore_dir, exist_ok=True)
                 
                 for filepath in self.files.values():
                     if os.path.exists(filepath):
