@@ -53,7 +53,7 @@ def render_pei(data_manager):
         if necessidade_especial == "Sim":
             # Handle tipo_deficiencia safely (can be NaN/float from CSV)
             tipo_def_value = pei_atual.get('tipo_deficiencia', '')
-            if pd.isna(tipo_def_value) or not tipo_def_value or tipo_def_value == '':
+            if pd.isna(tipo_def_value) or not tipo_def_value:
                 tipo_def_default = []
             else:
                 tipo_def_default = str(tipo_def_value).split(', ')
@@ -110,7 +110,7 @@ def render_pei(data_manager):
             
             # Handle apoio_necessario safely (can be NaN/float from CSV)
             apoio_value = pei_atual.get('apoio_necessario', '')
-            if pd.isna(apoio_value) or not apoio_value or apoio_value == '':
+            if pd.isna(apoio_value) or not apoio_value:
                 apoio_default = []
             else:
                 apoio_default = str(apoio_value).split(', ')
