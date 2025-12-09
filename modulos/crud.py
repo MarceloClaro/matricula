@@ -13,7 +13,8 @@ def render_crud(data_manager):
     # Selecionar tipo de registro
     tipo_registro = st.selectbox(
         "Selecione o tipo de registro",
-        ["Cadastro Geral", "PEI", "Socioeconômico", "Saúde"]
+        ["Cadastro Geral", "PEI", "Socioeconômico", "Saúde"],
+        key="crud_tipo_registro"
     )
     
     tipo_map = {
@@ -54,10 +55,12 @@ def render_listar(data_manager, tipo, tipo_registro):
         col1, col2 = st.columns(2)
         with col1:
             filtro_status = st.selectbox("Filtrar por Status", 
-                                        ["Todos"] + list(df['status'].unique()))
+                                        ["Todos"] + list(df['status'].unique()),
+                                        key="listar_filtro_status")
         with col2:
             filtro_ano = st.selectbox("Filtrar por Ano", 
-                                     ["Todos"] + list(df['ano_escolar'].unique()))
+                                     ["Todos"] + list(df['ano_escolar'].unique()),
+                                     key="listar_filtro_ano")
         
         if filtro_status != "Todos":
             df = df[df['status'] == filtro_status]
@@ -107,7 +110,7 @@ def render_editar(data_manager, tipo, tipo_registro):
             else:
                 opcoes.append(f"ID: {row['id']}")
     
-    registro_selecionado = st.selectbox("Selecione o registro", ["Selecione..."] + opcoes)
+    registro_selecionado = st.selectbox("Selecione o registro", ["Selecione..."] + opcoes, key="editar_registro_selecionado")
     
     if registro_selecionado == "Selecione...":
         st.info("Selecione um registro para editar")
@@ -241,7 +244,7 @@ def render_deletar(data_manager, tipo, tipo_registro):
             else:
                 opcoes.append(f"ID: {row['id']}")
     
-    registro_selecionado = st.selectbox("Selecione o registro", ["Selecione..."] + opcoes)
+    registro_selecionado = st.selectbox("Selecione o registro", ["Selecione..."] + opcoes, key="deletar_registro_selecionado")
     
     if registro_selecionado == "Selecione...":
         st.info("Selecione um registro para deletar")
@@ -251,9 +254,9 @@ def render_deletar(data_manager, tipo, tipo_registro):
     
     # Confirmação
     st.markdown("---")
-    confirmar = st.checkbox("Confirmo que desejo deletar este registro")
+    confirmar = st.checkbox("Confirmo que desejo deletar este registro", key="deletar_confirmar")
     
-    if st.button("🗑️ Deletar Registro", use_container_width=True, disabled=not confirmar):
+    if st.button("🗑️ Deletar Registro", use_container_width=True, disabled=not confirmar, key="deletar_botao"):
         try:
             data_manager.delete_record(tipo, registro_id)
             st.success("✅ Registro deletado com sucesso!")
