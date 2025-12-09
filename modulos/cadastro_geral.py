@@ -281,8 +281,9 @@ def render_cadastro_geral(data_manager):
                 # Processar foto se fornecida
                 foto_path = ""
                 if foto is not None:
-                    # Placeholder para salvar foto - implementação futura
-                    foto_path = f"fotos/{nome_completo.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.jpg"
+                    # TODO: Implementar salvamento de foto
+                    # Por enquanto, apenas registra que foto foi fornecida
+                    foto_path = "pendente_implementacao"
                 
                 # Converter lista de recursos para string
                 recursos_saeb_str = ", ".join(recursos_saeb) if recursos_saeb else ""
@@ -411,7 +412,10 @@ def render_lista_alunos(data_manager):
     
     # Adicionar coluna de responsáveis
     df_filtrado['responsaveis'] = df_filtrado.apply(
-        lambda row: f"{row['nome_mae']}" + (f" / {row['nome_pai']}" if row['nome_pai'] and str(row['nome_pai']).strip() != '' else ""),
+        lambda row: (
+            f"{row['nome_mae']}" + 
+            (f" / {row['nome_pai']}" if pd.notna(row.get('nome_pai')) and str(row['nome_pai']).strip() != '' else "")
+        ) if pd.notna(row.get('nome_mae')) else "Não informado",
         axis=1
     )
     
@@ -424,8 +428,9 @@ def render_lista_alunos(data_manager):
     )
     
     # Adicionar coluna indicando se é aluno especial com PEI
+    # Verifica tanto o campo aluno_deficiencia do cadastro quanto registros PEI
     if len(df_pei) > 0:
-        # Criar dicionário de alunos com PEI com validação de tipo
+        # Criar dicionário de alunos com PEI registrado
         alunos_com_pei = {}
         for _, pei_row in df_pei.iterrows():
             try:
@@ -436,15 +441,28 @@ def render_lista_alunos(data_manager):
                 # Ignora registros com IDs inválidos
                 continue
         
-        df_filtrado['aluno_especial_pei'] = df_filtrado['id'].apply(
-            lambda id_aluno: (
-                alunos_com_pei.get(int(id_aluno), 'Não') 
-                if pd.notna(id_aluno) and str(id_aluno).isdigit() 
-                else 'Não'
+        # Combina informação do cadastro e do PEI
+        def determinar_especial_pei(row):
+            id_aluno = row['id']
+            # Verifica se tem deficiência no cadastro OU tem registro PEI
+            tem_deficiencia_cadastro = (
+                pd.notna(row.get('aluno_deficiencia')) and 
+                row.get('aluno_deficiencia') == 'Sim'
             )
-        )
+            tem_pei_registrado = (
+                pd.notna(id_aluno) and 
+                str(id_aluno).isdigit() and 
+                alunos_com_pei.get(int(id_aluno), 'Não') == 'Sim'
+            )
+            return 'Sim' if (tem_deficiencia_cadastro or tem_pei_registrado) else 'Não'
+        
+        df_filtrado['aluno_especial_pei'] = df_filtrado.apply(determinar_especial_pei, axis=1)
     else:
-        df_filtrado['aluno_especial_pei'] = 'Não'
+        # Se não há registros PEI, verifica apenas o campo do cadastro
+        df_filtrado['aluno_especial_pei'] = df_filtrado.apply(
+            lambda row: 'Sim' if (pd.notna(row.get('aluno_deficiencia')) and row.get('aluno_deficiencia') == 'Sim') else 'Não',
+            axis=1
+        )
     
     # Mostrar dados
     st.markdown(f"**Total de alunos:** {len(df_filtrado)}")
