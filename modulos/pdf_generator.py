@@ -39,18 +39,16 @@ def render_pdf_generator(data_manager):
     # Opções de seções
     st.subheader("Seções a incluir no PDF")
     
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2 = st.columns(2)
     
     with col1:
         incluir_cadastro = st.checkbox("Cadastro Geral", value=True, disabled=True)
+        incluir_pei = st.checkbox("PEI", value=True)
+        incluir_anamnese = st.checkbox("🧠 Anamnese Pedagógica (PEI)", value=True)
     
     with col2:
-        incluir_pei = st.checkbox("PEI", value=True)
-    
-    with col3:
         incluir_socio = st.checkbox("Socioeconômico", value=True)
-    
-    with col4:
+        incluir_saeb = st.checkbox("📋 Questionário SAEB", value=True)
         incluir_saude = st.checkbox("Saúde", value=True)
     
     # Botão para gerar PDF
@@ -61,7 +59,9 @@ def render_pdf_generator(data_manager):
                     data_manager, 
                     aluno_id,
                     incluir_pei,
+                    incluir_anamnese,
                     incluir_socio,
+                    incluir_saeb,
                     incluir_saude
                 )
                 
@@ -85,7 +85,7 @@ def render_pdf_generator(data_manager):
             except Exception as e:
                 st.error(f"❌ Erro ao gerar PDF: {str(e)}")
 
-def gerar_pdf_aluno(data_manager, aluno_id, incluir_pei=True, incluir_socio=True, incluir_saude=True):
+def gerar_pdf_aluno(data_manager, aluno_id, incluir_pei=True, incluir_anamnese=True, incluir_socio=True, incluir_saeb=True, incluir_saude=True):
     """Gera PDF completo da ficha do aluno"""
     buffer = io.BytesIO()
     
@@ -331,6 +331,110 @@ def gerar_pdf_aluno(data_manager, aluno_id, incluir_pei=True, incluir_socio=True
                 ('VALIGN', (0, 0), (-1, -1), 'TOP'),
                 ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
                 ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#ffebee')),
+            ]))
+            elements.append(table)
+    
+    # Anamnese Pedagógica (PEI)
+    if incluir_anamnese:
+        df_anamnese = data_manager.get_data('anamnese_pei')
+        anamnese = df_anamnese[df_anamnese['aluno_id'] == aluno_id]
+        
+        if len(anamnese) > 0:
+            elements.append(PageBreak())
+            elements.append(Paragraph("ANAMNESE PEDAGÓGICA (PEI)", heading_style))
+            
+            anamnese_data = anamnese.iloc[0].to_dict()
+            
+            dados_anamnese = [
+                ['Data Preenchimento:', anamnese_data.get('data_preenchimento', '')],
+                ['Turma/Série:', anamnese_data.get('turma_serie', '')],
+                ['Desenvolvimento Motor:', anamnese_data.get('desenvolvimento_motor', '')],
+                ['Coordenação Motora Fina:', anamnese_data.get('coordenacao_motora_fina', '')],
+                ['Coordenação Motora Grossa:', anamnese_data.get('coordenacao_motora_grossa', '')],
+                ['Lateralidade:', anamnese_data.get('lateralidade', '')],
+                ['Atenção/Concentração:', anamnese_data.get('atencao_concentracao', '')],
+                ['Memória:', anamnese_data.get('memoria', '')],
+                ['Raciocínio Lógico:', anamnese_data.get('raciocinio_logico', '')],
+                ['Linguagem Oral:', anamnese_data.get('linguagem_oral', '')],
+                ['Articulação:', anamnese_data.get('articulacao', '')],
+                ['Vocabulário:', anamnese_data.get('vocabulario', '')],
+                ['Interação Social:', anamnese_data.get('interacao_social', '')],
+                ['Regulação Emocional:', anamnese_data.get('regulacao_emocional', '')],
+                ['Desempenho Português:', anamnese_data.get('desempenho_portugues', '')],
+                ['Desempenho Matemática:', anamnese_data.get('desempenho_matematica', '')],
+                ['Leitura:', anamnese_data.get('leitura', '')],
+                ['Escrita:', anamnese_data.get('escrita', '')],
+                ['Adaptações Metodológicas:', anamnese_data.get('adaptacoes_metodologicas', '')],
+                ['Recursos Tecnológicos:', anamnese_data.get('recursos_tecnologicos', '')],
+                ['Metas Curto Prazo:', anamnese_data.get('metas_curto_prazo', '')],
+                ['Metas Médio Prazo:', anamnese_data.get('metas_medio_prazo', '')],
+                ['Parecer Técnico:', anamnese_data.get('parecer_tecnico', '')],
+                ['Profissional Responsável:', anamnese_data.get('profissional_responsavel', '')],
+            ]
+            
+            table = Table(dados_anamnese, colWidths=[6*cm, 12.5*cm])
+            table.setStyle(TableStyle([
+                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 0), (-1, -1), 9),
+                ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f3e5f5')),
+            ]))
+            elements.append(table)
+    
+    # Questionário SAEB
+    if incluir_saeb:
+        df_saeb = data_manager.get_data('questionario_saeb')
+        saeb = df_saeb[df_saeb['aluno_id'] == aluno_id]
+        
+        if len(saeb) > 0:
+            elements.append(PageBreak())
+            elements.append(Paragraph("QUESTIONÁRIO SAEB/SPAECE", heading_style))
+            
+            saeb_data = saeb.iloc[0].to_dict()
+            
+            dados_saeb = [
+                ['Sexo:', saeb_data.get('sexo', '')],
+                ['Idade:', saeb_data.get('idade', '')],
+                ['Língua Família:', saeb_data.get('lingua_familia', '')],
+                ['Cor/Raça:', saeb_data.get('cor_raca', '')],
+                ['Deficiência:', saeb_data.get('deficiencia', '')],
+                ['TEA:', saeb_data.get('tea', '')],
+                ['Altas Habilidades:', saeb_data.get('altas_habilidades', '')],
+                ['Mora com Mãe:', saeb_data.get('mora_mae', '')],
+                ['Mora com Pai:', saeb_data.get('mora_pai', '')],
+                ['Escolaridade Mãe:', saeb_data.get('escolaridade_mae', '')],
+                ['Escolaridade Pai:', saeb_data.get('escolaridade_pai', '')],
+                ['Responsável Lê:', saeb_data.get('responsavel_le', '')],
+                ['Responsável Incentiva Estudar:', saeb_data.get('responsavel_incentiva_estudar', '')],
+                ['Bairro com Asfalto:', saeb_data.get('bairro_asfalto', '')],
+                ['Água Tratada:', saeb_data.get('bairro_agua_tratada', '')],
+                ['Qtd Geladeira:', saeb_data.get('qtd_geladeira', '')],
+                ['Qtd Computador:', saeb_data.get('qtd_computador', '')],
+                ['Qtd Quartos:', saeb_data.get('qtd_quartos', '')],
+                ['Casa com TV/Internet:', saeb_data.get('casa_tv_internet', '')],
+                ['Casa com WiFi:', saeb_data.get('casa_wifi', '')],
+                ['Tempo até Escola:', saeb_data.get('tempo_escola', '')],
+                ['Transporte Gratuito:', saeb_data.get('transporte_gratuito', '')],
+                ['Meio Transporte Principal:', saeb_data.get('meio_transporte_principal', '')],
+                ['Idade Entrada Escola:', saeb_data.get('idade_entrada_escola', '')],
+                ['Reprovação:', saeb_data.get('reprovacao', '')],
+                ['Abandono:', saeb_data.get('abandono', '')],
+                ['Prof. Explica:', saeb_data.get('prof_explica', '')],
+                ['Prof. Debate:', saeb_data.get('prof_debate', '')],
+                ['Escola Segurança:', saeb_data.get('escola_seguranca', '')],
+                ['Expectativa Futura:', saeb_data.get('expectativa_futura', '')],
+            ]
+            
+            table = Table(dados_saeb, colWidths=[6*cm, 12.5*cm])
+            table.setStyle(TableStyle([
+                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 0), (-1, -1), 9),
+                ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#e3f2fd')),
             ]))
             elements.append(table)
     

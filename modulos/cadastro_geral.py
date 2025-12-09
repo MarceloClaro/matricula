@@ -473,3 +473,62 @@ def render_lista_alunos(data_manager):
                       'ano_escolar', 'turno', 'telefone', 'aluno_especial_pei', 'status']
     
     st.dataframe(df_filtrado[colunas_exibir], use_container_width=True)
+    
+    # Botão para gerar PDF da lista
+    st.markdown("---")
+    st.subheader("📄 Gerar PDF Individual")
+    
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        # Seletor de aluno para gerar PDF
+        alunos_pdf = ["Selecione um aluno para gerar PDF"] + [
+            f"{row['id']} - {row['nome_completo']}" 
+            for _, row in df_filtrado.iterrows()
+        ]
+        aluno_pdf_selecionado = st.selectbox("Aluno:", alunos_pdf, key="pdf_lista")
+    
+    with col2:
+        st.markdown("<br>", unsafe_allow_html=True)  # Spacer
+        gerar_pdf_button = st.button("🖨️ Gerar PDF", use_container_width=True, key="btn_pdf_lista")
+    
+    if gerar_pdf_button and aluno_pdf_selecionado != "Selecione um aluno para gerar PDF":
+        aluno_id_pdf = int(aluno_pdf_selecionado.split(" - ")[0])
+        
+        with st.spinner("Gerando PDF..."):
+            try:
+                # Import necessário
+                from . import pdf_generator
+                
+                # Gerar PDF com todas as seções
+                pdf_buffer = pdf_generator.gerar_pdf_aluno(
+                    data_manager, 
+                    aluno_id_pdf,
+                    incluir_pei=True,
+                    incluir_anamnese=True,
+                    incluir_socio=True,
+                    incluir_saeb=True,
+                    incluir_saude=True
+                )
+                
+                if pdf_buffer:
+                    st.success("✅ PDF gerado com sucesso!")
+                    
+                    # Obter dados do aluno para nome do arquivo
+                    aluno_data = data_manager.get_record('cadastro', aluno_id_pdf)
+                    nome_arquivo = f"ficha_matricula_{aluno_data['nome_completo'].replace(' ', '_')}_{aluno_id_pdf}.pdf"
+                    
+                    st.download_button(
+                        label="📥 Baixar PDF",
+                        data=pdf_buffer,
+                        file_name=nome_arquivo,
+                        mime="application/pdf",
+                        use_container_width=True,
+                        key="download_pdf_lista"
+                    )
+                else:
+                    st.error("❌ Erro ao gerar PDF")
+                    
+            except Exception as e:
+                st.error(f"❌ Erro ao gerar PDF: {str(e)}")
+    elif gerar_pdf_button:
+        st.warning("⚠️ Selecione um aluno para gerar o PDF")
