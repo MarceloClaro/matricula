@@ -4,7 +4,7 @@ Aplicação principal em Streamlit
 """
 import streamlit as st
 from data_manager import DataManager
-from modulos import cadastro_geral, pei, socioeconomico, saude, dashboard, crud, busca, pdf_generator, export_zip
+from modulos import cadastro_geral, pei, socioeconomico, saude, questionario_saeb, dashboard, crud, busca, pdf_generator, export_zip
 
 # Configuração da página
 st.set_page_config(
@@ -49,6 +49,7 @@ with st.sidebar:
             "📝 Cadastro Geral",
             "♿ PEI",
             "💰 Socioeconômico",
+            "📋 Questionário SAEB",
             "🏥 Saúde",
             "📊 Dashboard",
             "⚙️ Gerenciamento (CRUD)",
@@ -97,6 +98,7 @@ if menu_opcao == "🏠 Início":
     - **Cadastro Geral**: Dados pessoais, endereço e informações escolares
     - **PEI**: Plano Educacional Individualizado para alunos com necessidades especiais
     - **Socioeconômico**: Questionário socioeconômico para análise do perfil dos alunos
+    - **Questionário SAEB**: Questionário completo SAEB/SPAECE do aluno
     - **Saúde**: Ficha de saúde com informações médicas e contato de emergência
     
     #### Gestão e Análise
@@ -111,7 +113,7 @@ if menu_opcao == "🏠 Início":
     ### 🚀 Como Começar:
     
     1. **Cadastre os alunos** através do menu "Cadastro Geral"
-    2. **Complete os dados** nos módulos PEI, Socioeconômico e Saúde
+    2. **Complete os dados** nos módulos PEI, Socioeconômico, Questionário SAEB e Saúde
     3. **Visualize estatísticas** no Dashboard
     4. **Gere documentos** em PDF conforme necessário
     
@@ -128,7 +130,7 @@ if menu_opcao == "🏠 Início":
     """)
     
     # Cards informativos
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         st.info("📝\n\n**Cadastro Geral**\n\nDados pessoais e escolares completos")
@@ -140,6 +142,9 @@ if menu_opcao == "🏠 Início":
         st.info("💰\n\n**Socioeconômico**\n\nPerfil socioeconômico familiar")
     
     with col4:
+        st.info("📋\n\n**Quest. SAEB**\n\nQuestionário SAEB/SPAECE")
+    
+    with col5:
         st.info("🏥\n\n**Saúde**\n\nDados de saúde e emergência")
 
 elif menu_opcao == "📝 Cadastro Geral":
@@ -156,6 +161,9 @@ elif menu_opcao == "♿ PEI":
 
 elif menu_opcao == "💰 Socioeconômico":
     socioeconomico.render_socioeconomico(data_manager)
+
+elif menu_opcao == "📋 Questionário SAEB":
+    questionario_saeb.render_questionario_saeb(data_manager)
 
 elif menu_opcao == "🏥 Saúde":
     saude.render_saude(data_manager)
