@@ -257,6 +257,9 @@ def render_deletar(data_manager, tipo, tipo_registro):
         try:
             data_manager.delete_record(tipo, registro_id)
             st.success("✅ Registro deletado com sucesso!")
+            # Add small delay for user to see success message
+            import time
+            time.sleep(1)
             st.rerun()
         except Exception as e:
             st.error(f"❌ Erro ao deletar registro: {str(e)}")

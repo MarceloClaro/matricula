@@ -73,7 +73,7 @@ class DataManager:
             try:
                 df = pd.read_csv(self.files[tipo])
                 return df
-            except:
+            except (FileNotFoundError, pd.errors.EmptyDataError):
                 return pd.DataFrame()
         return pd.DataFrame()
     

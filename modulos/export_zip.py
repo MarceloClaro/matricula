@@ -142,6 +142,12 @@ def gerar_zip_export(data_manager, df_alunos, incluir_pei=True, incluir_socio=Tr
             except Exception as e:
                 # Log do erro mas continua processando
                 error_msg = f"Erro ao gerar PDF do aluno {aluno_id}: {str(e)}\n"
+                # Append to existing errors file
+                try:
+                    existing_errors = zip_file.read("erros.txt").decode('utf-8')
+                    error_msg = existing_errors + error_msg
+                except KeyError:
+                    pass  # File doesn't exist yet
                 zip_file.writestr("erros.txt", error_msg)
         
         # Exportar CSVs
