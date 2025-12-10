@@ -444,7 +444,11 @@ class FaceRecognitionSystem:
         """
         if not CV2_AVAILABLE or self.liveness_model is None:
             # Detecção básica sem modelo: sempre retorna True
-            # Na prática, poderia usar técnicas heurísticas simples
+            # NOTA DE SEGURANÇA: Quando o modelo de liveness não está disponível,
+            # o sistema permite acesso (retorna True) para manter funcionalidade básica.
+            # Isto significa que anti-spoofing está DESABILITADO neste caso.
+            # A confiança baixa (0.5) indica que a detecção não foi realizada.
+            # O sistema ainda pode usar reconhecimento facial, mas sem proteção contra fotos.
             return True, 0.5
         
         # Preparar frame
