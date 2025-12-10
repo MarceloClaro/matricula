@@ -27,8 +27,8 @@ As bibliotecas de reconhecimento facial foram integradas ao `requirements.txt` p
 
 ```python
 # Face Recognition Dependencies (em requirements.txt)
-dlib>=19.24.0,<19.25.0     # Biblioteca base para detecção e reconhecimento facial
-                           # Range permite patches importantes mantendo compatibilidade
+dlib>=19.24.0     # Biblioteca base para detecção e reconhecimento facial
+                  # Permite versões 19.24.0 e superiores, incluindo 20.0.0+
 face-recognition==1.3.0    # API de alto nível para reconhecimento facial
 ```
 

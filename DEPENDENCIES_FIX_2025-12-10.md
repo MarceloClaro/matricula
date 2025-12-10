@@ -18,7 +18,7 @@ The necessary libraries (opencv-python, face_recognition, and dlib) were not bei
 
 ```python
 # Face Recognition Dependencies (ADDED)
-dlib>=19.24.0,<19.25.0
+dlib>=19.24.0
 face-recognition==1.3.0
 ```
 
