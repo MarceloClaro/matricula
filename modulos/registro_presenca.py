@@ -17,6 +17,24 @@ def render_registro_presenca(data_manager):
     st.header("📸 Registro de Presença - Cadastro Facial")
     st.markdown("---")
     
+    # Inicializar sistema de reconhecimento facial
+    face_system = FaceRecognitionSystem(data_dir=data_manager.data_dir)
+    
+    # Verificar se reconhecimento facial está disponível
+    if not face_system.available:
+        st.error("""
+        ❌ **Reconhecimento Facial não está disponível**
+        
+        As bibliotecas necessárias (face_recognition e dlib) não foram instaladas corretamente.
+        
+        **Para habilitar esta funcionalidade:**
+        - Instale as dependências do sistema: `build-essential`, `cmake`, `libopenblas-dev`
+        - Execute: `pip install dlib face-recognition`
+        
+        No Streamlit Cloud, certifique-se de que o arquivo `packages.txt` contém as dependências necessárias.
+        """)
+        return
+    
     st.info("""
     ### 📋 Como funciona:
     1. Selecione um aluno já cadastrado no sistema
@@ -26,9 +44,6 @@ def render_registro_presenca(data_manager):
     
     **💡 Dica:** Mantenha o rosto centralizado e bem iluminado durante a captura.
     """)
-    
-    # Inicializar sistema de reconhecimento facial
-    face_system = FaceRecognitionSystem(data_dir=data_manager.data_dir)
     
     # Abas
     tab1, tab2, tab3 = st.tabs([

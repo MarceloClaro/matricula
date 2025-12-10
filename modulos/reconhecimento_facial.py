@@ -3,7 +3,6 @@ Módulo de Reconhecimento Facial com Anti-Spoofing
 Implementa captura de sequência de fotos, treinamento de modelo e detecção de faces
 """
 import cv2
-import face_recognition
 import numpy as np
 import os
 import pickle
@@ -11,12 +10,30 @@ import json
 import time
 from datetime import datetime
 from PIL import Image
-import imgaug.augmenters as iaa
-from sklearn.model_selection import train_test_split
-from tensorflow import keras
-from tensorflow.keras import layers, callbacks
-from tensorflow.keras.models import Sequential, load_model
 import streamlit as st
+
+# Tentar importar face_recognition e bibliotecas opcionais
+try:
+    import face_recognition
+    FACE_RECOGNITION_AVAILABLE = True
+except ImportError:
+    FACE_RECOGNITION_AVAILABLE = False
+    st.warning("⚠️ face_recognition não está disponível. Funcionalidade de reconhecimento facial desabilitada.")
+
+try:
+    import imgaug.augmenters as iaa
+    IMGAUG_AVAILABLE = True
+except ImportError:
+    IMGAUG_AVAILABLE = False
+
+try:
+    from sklearn.model_selection import train_test_split
+    from tensorflow import keras
+    from tensorflow.keras import layers, callbacks
+    from tensorflow.keras.models import Sequential, load_model
+    TENSORFLOW_AVAILABLE = True
+except ImportError:
+    TENSORFLOW_AVAILABLE = False
 
 class FaceRecognitionSystem:
     """Sistema de reconhecimento facial com anti-spoofing"""
@@ -25,6 +42,7 @@ class FaceRecognitionSystem:
         self.data_dir = data_dir
         self.faces_dir = os.path.join(data_dir, 'faces')
         self.models_dir = os.path.join(data_dir, 'models')
+        self.available = FACE_RECOGNITION_AVAILABLE
         
         # Criar diretórios se não existirem
         os.makedirs(self.faces_dir, exist_ok=True)
@@ -37,11 +55,12 @@ class FaceRecognitionSystem:
         # Carregar embeddings se existirem
         self.known_face_encodings = []
         self.known_face_ids = []
-        self.load_embeddings()
+        if self.available:
+            self.load_embeddings()
         
         # Carregar modelo de liveness se existir
         self.liveness_model = None
-        if os.path.exists(self.liveness_model_path):
+        if TENSORFLOW_AVAILABLE and os.path.exists(self.liveness_model_path):
             try:
                 self.liveness_model = load_model(self.liveness_model_path)
             except (OSError, ValueError) as e:
@@ -121,6 +140,15 @@ class FaceRecognitionSystem:
         Returns:
             list: Lista de imagens aumentadas (numpy arrays)
         """
+        if not IMGAUG_AVAILABLE:
+            # Sem augmentation, retornar apenas as imagens originais
+            images = []
+            for img_path in image_paths:
+                image = cv2.imread(img_path)
+                if image is not None:
+                    images.append(image)
+            return images
+        
         # Definir augmentations
         seq = iaa.Sequential([
             iaa.Fliplr(0.5),  # Flip horizontal em 50% das imagens
@@ -160,6 +188,10 @@ class FaceRecognitionSystem:
         Returns:
             list: Lista de encodings extraídos
         """
+        if not self.available:
+            st.error("❌ Reconhecimento facial não está disponível. Instale face_recognition e dlib.")
+            return []
+        
         encodings = []
         
         # Aplicar augmentation
@@ -199,6 +231,10 @@ class FaceRecognitionSystem:
         Returns:
             bool: True se treinamento foi bem sucedido
         """
+        if not self.available:
+            st.error("❌ Reconhecimento facial não está disponível. Instale face_recognition e dlib.")
+            return False
+        
         # Extrair encodings
         encodings = self.extract_face_encodings(image_paths, aluno_id)
         
@@ -248,6 +284,9 @@ class FaceRecognitionSystem:
         Returns:
             tuple: (aluno_id, confidence, face_location) ou (None, 0, None)
         """
+        if not self.available:
+            return None, 0, None
+        
         if len(self.known_face_encodings) == 0:
             return None, 0, None
         
@@ -290,6 +329,10 @@ class FaceRecognitionSystem:
         Returns:
             bool: True se treinamento foi bem sucedido
         """
+        if not TENSORFLOW_AVAILABLE:
+            st.warning("TensorFlow não está disponível. Anti-spoofing desabilitado.")
+            return False
+        
         if fake_images is None or len(fake_images) == 0:
             st.warning("Sem imagens falsas para treinar anti-spoofing. Usando detecção básica.")
             return False
