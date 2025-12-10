@@ -120,9 +120,15 @@ pip install -r requirements-optional.txt
 
 **Nota sobre instalação do dlib:** Se a instalação do `dlib` falhar (comum em ambientes Windows ou sistemas sem compilador C++), você pode:
 1. Usar o sistema sem reconhecimento facial (todas as outras funcionalidades continuarão funcionando)
-2. Instalar uma versão pré-compilada do dlib:
+2. **Recomendado**: Usar conda-forge (mais seguro):
+   ```bash
+   conda install -c conda-forge dlib
+   pip install face-recognition tensorflow imgaug
+   ```
+3. Instalar uma versão pré-compilada do dlib (use com cautela):
    ```bash
    # Windows: baixar wheel do dlib de https://github.com/z-mahmud22/Dlib_Windows_Python3.x
+   # IMPORTANTE: Verifique a integridade do arquivo antes de instalar
    pip install dlib-19.24.2-cp310-cp310-win_amd64.whl  # ajuste para sua versão do Python
    pip install face-recognition tensorflow imgaug
    ```
