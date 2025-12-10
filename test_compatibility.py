@@ -146,7 +146,9 @@ class CompatibilityTester:
         """Check if installed versions meet requirements.txt constraints"""
         self.print_header("VERSION CONSTRAINTS CHECK")
         
-        requirements_file = '/home/runner/work/matricula/matricula/requirements.txt'
+        # Use relative path from script location
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        requirements_file = os.path.join(script_dir, 'requirements.txt')
         
         if not os.path.exists(requirements_file):
             print("⚠️  requirements.txt not found")
@@ -234,9 +236,12 @@ class CompatibilityTester:
         # Check Pillow
         try:
             from PIL import Image
-            if not hasattr(Image, 'ANTIALIAS'):
-                print("⚠️  Pillow: Image.ANTIALIAS deprecated, use Image.LANCZOS instead")
+            # In Pillow 10.0+, ANTIALIAS was removed (it was deprecated in earlier versions)
+            if hasattr(Image, 'ANTIALIAS'):
+                print("ℹ️  Pillow: Image.ANTIALIAS is available but deprecated, use Image.LANCZOS instead")
                 deprecations.append("Pillow: Image.ANTIALIAS deprecated")
+            else:
+                print("ℹ️  Pillow: Image.ANTIALIAS removed (expected in Pillow 10+), use Image.LANCZOS")
         except:
             pass
         
@@ -427,7 +432,8 @@ class CompatibilityTester:
     
     def save_report(self, filename: str = 'compatibility_report.txt'):
         """Save detailed compatibility report to file"""
-        report_path = os.path.join('/home/runner/work/matricula/matricula', filename)
+        # Use current working directory
+        report_path = os.path.join(os.getcwd(), filename)
         
         with open(report_path, 'w') as f:
             f.write("=" * 70 + "\n")
