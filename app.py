@@ -4,7 +4,7 @@ Aplicação principal em Streamlit
 """
 import streamlit as st
 from data_manager import DataManager
-from modulos import cadastro_geral, pei, socioeconomico, saude, questionario_saeb, anamnese_pei, dashboard, crud, busca, pdf_generator, export_zip
+from modulos import cadastro_geral, pei, socioeconomico, saude, questionario_saeb, anamnese_pei, dashboard, crud, busca, pdf_generator, export_zip, backup
 
 # Configuração da página
 st.set_page_config(
@@ -56,7 +56,8 @@ with st.sidebar:
             "⚙️ Gerenciamento (CRUD)",
             "🔍 Busca Inteligente",
             "📄 Gerar PDF Individual",
-            "📦 Exportar em Lote (ZIP)"
+            "📦 Exportar em Lote (ZIP)",
+            "💾 Backup e Restauração"
         ],
         index=0
     )
@@ -111,6 +112,9 @@ if menu_opcao == "🏠 Início":
     - **PDF Individual**: Gerar ficha completa de matrícula em PDF
     - **Exportação em Lote**: Exportar múltiplos PDFs e dados em formato ZIP
     
+    #### Segurança
+    - **Backup e Restauração**: Sistema completo de backup e recuperação de dados
+    
     ### 🚀 Como Começar:
     
     1. **Cadastre os alunos** através do menu "Cadastro Geral"
@@ -124,6 +128,7 @@ if menu_opcao == "🏠 Início":
     - O Dashboard mostra alunos com cadastro incompleto
     - Você pode exportar todos os dados em CSV e PDF
     - Os dados são salvos automaticamente em arquivos CSV na pasta 'data'
+    - **Novo!** Crie backups regulares dos seus dados para maior segurança
     
     ---
     
@@ -131,7 +136,7 @@ if menu_opcao == "🏠 Início":
     """)
     
     # Cards informativos
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4, col5, col6 = st.columns(6)
     
     with col1:
         st.info("📝\n\n**Cadastro Geral**\n\nDados pessoais e escolares completos")
@@ -147,6 +152,9 @@ if menu_opcao == "🏠 Início":
     
     with col5:
         st.info("🏥\n\n**Saúde**\n\nDados de saúde e emergência")
+    
+    with col6:
+        st.info("💾\n\n**Backup**\n\nBackup e restauração de dados")
 
 elif menu_opcao == "📝 Cadastro Geral":
     tab1, tab2 = st.tabs(["Novo Cadastro", "Lista de Alunos"])
@@ -186,6 +194,9 @@ elif menu_opcao == "📄 Gerar PDF Individual":
 
 elif menu_opcao == "📦 Exportar em Lote (ZIP)":
     export_zip.render_export_zip(data_manager)
+
+elif menu_opcao == "💾 Backup e Restauração":
+    backup.render_backup(data_manager)
 
 # Footer
 st.markdown("---")

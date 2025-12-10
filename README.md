@@ -20,6 +20,9 @@ Sistema completo de gerenciamento de matrículas escolares desenvolvido em Strea
 - **PDF Individual**: Geração de ficha completa de matrícula em PDF
 - **Exportação em Lote**: Exportação de múltiplos PDFs e dados CSV em arquivo ZIP
 
+### Segurança
+- **Backup e Restauração**: Sistema completo de backup e recuperação de todos os dados
+
 ## 🚀 Instalação
 
 ### Requisitos
@@ -67,7 +70,8 @@ matricula/
 │   ├── crud.py                # Gerenciamento CRUD
 │   ├── busca.py               # Busca inteligente
 │   ├── pdf_generator.py       # Gerador de PDF
-│   └── export_zip.py          # Exportação em lote
+│   ├── export_zip.py          # Exportação em lote
+│   └── backup.py              # Backup e restauração
 └── data/                       # Dados CSV (criado automaticamente)
     ├── cadastro_geral.csv
     ├── pei.csv
@@ -121,6 +125,33 @@ Permite exportar:
 - Dados CSV filtrados
 - Relatório resumido com estatísticas
 - Tudo compactado em arquivo ZIP
+
+## 💾 Backup e Restauração
+
+O sistema inclui funcionalidade completa de backup e restauração:
+
+### Criar Backup
+- Cria arquivo ZIP com todos os dados CSV
+- Inclui timestamp automático no nome do arquivo
+- Download instantâneo do backup criado
+
+### Restaurar Backup
+- Upload de arquivo de backup ZIP
+- Validação de integridade dos dados
+- Backup automático dos dados atuais antes da restauração
+- Confirmação obrigatória para segurança
+
+### Gerenciar Backups
+- Lista todos os backups disponíveis
+- Informações de data, hora e tamanho
+- Download de backups anteriores
+- Exclusão de backups antigos
+
+### Boas Práticas
+- Crie backups regularmente (diário, semanal ou mensal)
+- Mantenha cópias em locais seguros
+- Teste a restauração periodicamente
+- Os backups são salvos na pasta `backups/`
 
 ## 🛠️ Tecnologias Utilizadas
 

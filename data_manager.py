@@ -3,11 +3,19 @@ Módulo de gerenciamento de dados com persistência em CSV
 """
 import pandas as pd
 import os
+import zipfile
+import shutil
+import tempfile
 from datetime import datetime
 
 class DataManager:
     def __init__(self, data_dir='data'):
         self.data_dir = data_dir
+        # Use absolute paths to avoid issues with relative paths
+        base_dir = os.path.dirname(os.path.abspath(data_dir))
+        self.backup_dir = os.path.join(base_dir, 'backups')
+        self.backup_before_restore_dir = os.path.join(base_dir, 'backup_before_restore')
+        
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
         
@@ -27,10 +35,37 @@ class DataManager:
         # Cadastro Geral
         if not os.path.exists(self.files['cadastro']):
             df = pd.DataFrame(columns=[
-                'id', 'nome_completo', 'data_nascimento', 'cpf', 'rg', 
-                'nome_mae', 'nome_pai', 'telefone', 'email',
-                'endereco', 'numero', 'complemento', 'bairro', 'cidade', 'uf', 'cep',
-                'escola_origem', 'ano_escolar', 'turno', 'data_matricula', 'status'
+                # Identificação básica
+                'id', 'nome_completo', 'nome_social', 'data_nascimento', 'cpf', 'codigo_inep', 
+                'matricula', 'sexo', 'cor_raca', 'telefone', 'email', 'nis',
+                # Nacionalidade
+                'nacionalidade', 'uf_nascimento', 'cidade_nascimento', 'pais_nacionalidade',
+                # Filiação
+                'nome_mae', 'cpf_mae', 'profissao_mae', 
+                'nome_pai', 'cpf_pai', 'profissao_pai',
+                # Documentação civil
+                'rg', 'numero_documento', 'orgao_emissor', 'uf_emissor', 'data_expedicao',
+                'modelo_certidao', 'tipo_certidao', 'cartao_sus', 'documento_estrangeiro',
+                'justificativa_documentacao',
+                # Endereço
+                'cep', 'bairro', 'endereco', 'numero', 'complemento', 'zona', 'uf', 'cidade',
+                # Saúde
+                'cartao_nacional_sus', 'alergia', 'aluno_deficiencia', 'possui_laudo_medico',
+                'tipo_deficiencia', 'atendimentos_especializados', 'recursos_saeb',
+                'escolarizacao_outro_espaco',
+                # Informações médicas detalhadas (CID-10, DSM-5, medicação)
+                'cid_10_dsm5', 'medicacao_uso', 'nome_medicacao', 'dosagem_medicacao',
+                'horario_medicacao', 'medico_responsavel', 'crm_medico',
+                'efeitos_esperados', 'efeitos_colaterais',
+                # Histórico escolar
+                'escola_origem', 'escola_ano_anterior', 'programas_educacionais',
+                'rendimento_ano_anterior', 'movimento_escolar',
+                # Dados escolares atuais
+                'ano_escolar', 'turno', 'status',
+                # Transporte
+                'utiliza_transporte', 'poder_responsavel_transporte', 'tipo_veiculo',
+                # Metadados
+                'data_matricula', 'foto_path'
             ])
             df.to_csv(self.files['cadastro'], index=False)
         
@@ -279,3 +314,136 @@ class DataManager:
                 dados['anamnese_pei'] = anamnese.iloc[0].to_dict()
         
         return dados
+    
+    def create_backup(self, backup_path=None):
+        """
+        Cria backup de todos os arquivos CSV em formato ZIP
+        
+        Args:
+            backup_path (str, optional): Caminho completo para o arquivo de backup.
+                                        Se None, cria automaticamente com timestamp.
+        
+        Returns:
+            str: Caminho completo do arquivo de backup criado
+        """
+        if backup_path is None:
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            backup_filename = f'backup_matricula_{timestamp}.zip'
+            backup_path = os.path.join(self.backup_dir, backup_filename)
+        
+        # Cria diretório de backup se não existir
+        backup_dir = os.path.dirname(backup_path)
+        if not os.path.exists(backup_dir):
+            os.makedirs(backup_dir)
+        
+        # Cria arquivo ZIP com todos os CSVs
+        with zipfile.ZipFile(backup_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for tipo, filepath in self.files.items():
+                if os.path.exists(filepath):
+                    # Adiciona arquivo ao ZIP mantendo apenas o nome do arquivo
+                    zipf.write(filepath, os.path.basename(filepath))
+        
+        return backup_path
+    
+    def restore_backup(self, backup_file):
+        """
+        Restaura backup de um arquivo ZIP
+        
+        Args:
+            backup_file (str): Caminho para o arquivo ZIP de backup
+        
+        Returns:
+            tuple: (sucesso: bool, mensagem: str)
+                   - sucesso: True se restaurado com sucesso, False caso contrário
+                   - mensagem: Mensagem descritiva do resultado
+        """
+        try:
+            # Cria diretório temporário para extração de forma segura
+            temp_dir = tempfile.mkdtemp(prefix='matricula_restore_')
+            
+            try:
+                # Extrai arquivos do ZIP
+                with zipfile.ZipFile(backup_file, 'r') as zipf:
+                    zipf.extractall(temp_dir)
+                
+                # Valida que todos os arquivos esperados estão presentes
+                expected_files = [os.path.basename(f) for f in self.files.values()]
+                extracted_files = os.listdir(temp_dir)
+                
+                missing_files = [f for f in expected_files if f not in extracted_files]
+                if missing_files:
+                    return False, f"Arquivos faltando no backup: {', '.join(missing_files)}"
+                
+                # Valida que os arquivos extraídos são CSVs válidos
+                for filename in expected_files:
+                    filepath = os.path.join(temp_dir, filename)
+                    if not os.path.exists(filepath):
+                        return False, f"Arquivo não encontrado: {filename}"
+                    try:
+                        # Tenta ler o arquivo como CSV para validar integridade
+                        pd.read_csv(filepath, nrows=0)
+                    except Exception as e:
+                        return False, f"Arquivo CSV inválido ({filename}): {str(e)}"
+                
+                # Faz backup dos arquivos atuais antes de substituir
+                # Usa método mais seguro para recriar diretório
+                shutil.rmtree(self.backup_before_restore_dir, ignore_errors=True)
+                os.makedirs(self.backup_before_restore_dir, exist_ok=True)
+                
+                for filepath in self.files.values():
+                    if os.path.exists(filepath):
+                        shutil.copy2(filepath, self.backup_before_restore_dir)
+                
+                # Copia arquivos restaurados para o diretório de dados
+                for filename in expected_files:
+                    src = os.path.join(temp_dir, filename)
+                    dst = os.path.join(self.data_dir, filename)
+                    shutil.copy2(src, dst)
+                
+                return True, "Backup restaurado com sucesso!"
+                
+            finally:
+                # Remove diretório temporário
+                if os.path.exists(temp_dir):
+                    shutil.rmtree(temp_dir)
+            
+        except Exception as e:
+            return False, f"Erro ao restaurar backup: {str(e)}"
+    
+    def list_backups(self, backup_dir=None):
+        """
+        Lista todos os backups disponíveis
+        
+        Args:
+            backup_dir (str, optional): Diretório onde procurar backups.
+                                       Se None, usa o diretório padrão 'backups/'
+        
+        Returns:
+            list: Lista de dicionários com informações dos backups.
+                  Cada dicionário contém:
+                  - filename (str): Nome do arquivo
+                  - filepath (str): Caminho completo do arquivo
+                  - size (int): Tamanho em bytes
+                  - date (str): Data de criação formatada
+        """
+        if backup_dir is None:
+            backup_dir = self.backup_dir
+        
+        if not os.path.exists(backup_dir):
+            return []
+        
+        backups = []
+        for filename in os.listdir(backup_dir):
+            if filename.startswith('backup_matricula_') and filename.endswith('.zip'):
+                filepath = os.path.join(backup_dir, filename)
+                stat = os.stat(filepath)
+                backups.append({
+                    'filename': filename,
+                    'filepath': filepath,
+                    'size': stat.st_size,
+                    'date': datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
+                })
+        
+        # Ordena por data (mais recente primeiro)
+        backups.sort(key=lambda x: x['date'], reverse=True)
+        return backups

@@ -1,7 +1,1 @@
 id,aluno_id,tipo_sanguineo,fator_rh,alergias,doencas_cronicas,medicamentos_uso_continuo,historico_doencas,vacinacao_em_dia,plano_saude,nome_plano_saude,numero_plano,contato_emergencia,telefone_emergencia,parentesco_emergencia,observacoes_saude,data_cadastro
-1,1,O,Positivo,Nenhuma,,,,Sim,Não,,,Maria Silva Santos,(11) 98765-4321,Mãe,,2025-12-09 12:30:25
-2,5,O,Positivo,Nenhuma alergia conhecida,Não,Não,Saudável,Sim,Não,,,Maria Silva Santos,(85) 98765-4321,Mãe,Nenhuma observação especial,2025-12-09 15:01:59
-3,6,A,Positivo,Alergia a camarão,Transtorno do Espectro Autista,Risperidona 1mg,Diagnóstico de TEA aos 3 anos,Sim,Sim,Unimed,12345678901.0,Carla Oliveira Costa,(85) 99876-5432,Mãe,Acompanhamento psiquiátrico mensal,2025-12-09 15:01:59
-4,7,B,Positivo,Nenhuma,Não,Não,Saudável,Sim,Sim,Bradesco Saúde,98765432100.0,Sandra Rodrigues Lima,(85) 98123-4567,Mãe,Nenhuma observação,2025-12-09 15:01:59
-5,8,O,Positivo,Nenhuma,Não,Não,Saudável,Sim,Não,,,Fernanda Ferreira Souza,(85) 97234-5678,Mãe,Nenhuma,2025-12-09 15:01:59
-6,9,AB,Positivo,Alergia a poeira,Perda auditiva bilateral,Não,Perda auditiva desde nascimento,Sim,Sim,Hapvida,55667788990,Patricia Alves Pereira,(85) 96345-6789,Mãe,Usa aparelho auditivo bilateral,2025-12-09 15:01:59
