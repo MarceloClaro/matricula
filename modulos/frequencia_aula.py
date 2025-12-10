@@ -17,6 +17,24 @@ def render_frequencia_aula(data_manager):
     st.header("✅ Frequência de Aula - Reconhecimento Facial")
     st.markdown("---")
     
+    # Inicializar sistema de reconhecimento facial
+    face_system = FaceRecognitionSystem(data_dir=data_manager.data_dir)
+    
+    # Verificar se reconhecimento facial está disponível
+    if not face_system.available:
+        st.error("""
+        ❌ **Reconhecimento Facial não está disponível**
+        
+        As bibliotecas necessárias (face_recognition e dlib) não foram instaladas corretamente.
+        
+        **Para habilitar esta funcionalidade:**
+        - Instale as dependências do sistema: `build-essential`, `cmake`, `libopenblas-dev`
+        - Execute: `pip install dlib face-recognition`
+        
+        No Streamlit Cloud, certifique-se de que o arquivo `packages.txt` contém as dependências necessárias.
+        """)
+        return
+    
     st.info("""
     ### 📋 Como funciona:
     1. Clique em 'Marcar Presença' 
@@ -26,9 +44,6 @@ def render_frequencia_aula(data_manager):
     
     **🔒 Segurança:** O sistema possui anti-spoofing para evitar fraudes com fotos.
     """)
-    
-    # Inicializar sistema de reconhecimento facial
-    face_system = FaceRecognitionSystem(data_dir=data_manager.data_dir)
     
     # Verificar se há alunos cadastrados
     if face_system.get_student_count() == 0:

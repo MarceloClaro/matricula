@@ -10,7 +10,6 @@ import json
 import time
 from datetime import datetime
 from PIL import Image
-import streamlit as st
 
 # Tentar importar face_recognition e bibliotecas opcionais
 try:
@@ -18,7 +17,6 @@ try:
     FACE_RECOGNITION_AVAILABLE = True
 except ImportError:
     FACE_RECOGNITION_AVAILABLE = False
-    st.warning("⚠️ face_recognition não está disponível. Funcionalidade de reconhecimento facial desabilitada.")
 
 try:
     import imgaug.augmenters as iaa
@@ -34,6 +32,9 @@ try:
     TENSORFLOW_AVAILABLE = True
 except ImportError:
     TENSORFLOW_AVAILABLE = False
+
+# Import streamlit after optional imports to avoid import-time warnings
+import streamlit as st
 
 class FaceRecognitionSystem:
     """Sistema de reconhecimento facial com anti-spoofing"""

@@ -53,15 +53,22 @@ Sistema completo de gerenciamento de matrículas escolares desenvolvido em Strea
 ### Requisitos
 - Python 3.8 ou superior
 - pip
-- Webcam (para reconhecimento facial)
-- **Sistemas Linux/Mac**: CMake e dlib dependencies
+- Webcam (opcional, para reconhecimento facial)
+- **Sistemas Linux/Mac**: CMake e dlib dependencies (opcional, para reconhecimento facial)
   ```bash
   # Ubuntu/Debian
-  sudo apt-get install cmake libopenblas-dev liblapack-dev
+  sudo apt-get install build-essential cmake libopenblas-dev liblapack-dev libx11-dev libgtk-3-dev
   
   # macOS
   brew install cmake
   ```
+
+**Nota sobre Reconhecimento Facial:**
+O reconhecimento facial é uma funcionalidade opcional. Se as bibliotecas `dlib` e `face-recognition` não puderem ser instaladas, o sistema funcionará normalmente sem essa funcionalidade. As demais funcionalidades (cadastro, dashboard, PDFs, etc.) continuarão disponíveis.
+
+### Implantação no Streamlit Cloud
+
+Para implantar no Streamlit Cloud, o arquivo `packages.txt` já está configurado com as dependências necessárias para o reconhecimento facial. Se a instalação do `dlib` falhar, o sistema funcionará sem a funcionalidade de reconhecimento facial.
 
 ### Passos para instalação
 
@@ -81,6 +88,15 @@ pip install -r requirements.txt
 pip install cmake
 pip install dlib
 ```
+
+Se a instalação do `dlib` falhar (comum em ambientes Windows ou sistemas sem compilador C++), você pode:
+1. Usar o sistema sem reconhecimento facial (outras funcionalidades continuarão funcionando)
+2. Instalar uma versão pré-compilada do dlib:
+   ```bash
+   # Windows: baixar wheel do dlib de https://github.com/z-mahmud22/Dlib_Windows_Python3.x
+   pip install dlib-19.24.2-cp310-cp310-win_amd64.whl  # ajuste para sua versão do Python
+   ```
+3. Remover as linhas `face-recognition==1.3.0` e `dlib==19.24.2` do `requirements.txt` se não precisar dessa funcionalidade
 
 3. Execute a aplicação:
 ```bash
