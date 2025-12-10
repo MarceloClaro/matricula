@@ -308,7 +308,7 @@ class FaceRecognitionSystem:
         Returns:
             tuple: (aluno_id, confidence, face_location) ou (None, 0, None)
         """
-        if not self.available or not CV2_AVAILABLE:
+        if not self.available:
             return None, 0, None
         
         if len(self.known_face_encodings) == 0:
