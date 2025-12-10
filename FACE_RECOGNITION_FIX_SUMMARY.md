@@ -39,7 +39,7 @@ Movidas as bibliotecas de reconhecimento facial de `requirements-optional.txt` p
 ```python
 # Face Recognition Dependencies
 # Note: These require system packages in packages.txt
-dlib>=19.24.0,<19.25.0     # Range 19.24.x para patches mantendo compatibilidade
+dlib>=19.24.0     # Version 19.24.0 or later, allows updates including 20.0.0+
 face-recognition==1.3.0
 
 # Anti-spoofing (liveness detection) - Optional but recommended

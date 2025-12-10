@@ -196,7 +196,7 @@ scikit-learn==1.3.2
 numpy>=1.24.3,<2.0
 
 # Reconhecimento Facial (Opcional)
-dlib>=19.24.0,<19.25.0
+dlib>=19.24.0
 face-recognition==1.3.0
 tensorflow>=2.15.0,<2.18.0
 imgaug==0.4.0
