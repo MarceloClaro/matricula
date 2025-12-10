@@ -247,9 +247,13 @@ pip install -v -r requirements.txt
 
 ### Problemas Conhecidos
 
-1. **Python 3.12+**: Algumas versões do dlib podem ter problemas com Python 3.12. Recomenda-se Python 3.10 ou 3.11.
-2. **Windows**: A compilação do dlib é complexa no Windows. Use conda-forge.
+1. **Python 3.12+**: Algumas versões do dlib podem ter problemas com Python 3.12. 
+   - **Recomendado**: Python 3.10 ou 3.11
+   - **Testado**: dlib 19.24.0 funciona com Python 3.10 e 3.11
+2. **Windows**: A compilação do dlib é complexa no Windows. 
+   - **Solução**: Use conda-forge (`conda install -c conda-forge dlib`)
 3. **Streamlit Cloud**: A compilação pode levar vários minutos na primeira vez.
+   - **Normal**: O build do dlib leva 3-5 minutos no Streamlit Cloud
 
 ## Conclusão
 
