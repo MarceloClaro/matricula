@@ -117,12 +117,21 @@ def main():
     if not optional_available.get('face_recognition', False):
         print("\n⚠️  Reconhecimento facial não disponível")
         print("   O sistema funcionará sem esta funcionalidade")
-        print("   Para habilitar, certifique-se de ter as dependências do sistema instaladas:")
-        print("   - Ubuntu/Debian: sudo apt-get install build-essential cmake libopenblas-dev liblapack-dev libx11-dev libgtk-3-dev")
-        print("   - macOS: brew install cmake")
-        print("   Em seguida, tente reinstalar: pip install --force-reinstall dlib face-recognition")
+        print("   ")
+        print("   📖 Para instruções completas de instalação, consulte:")
+        print("      FACE_RECOGNITION_INSTALLATION.md")
+        print("   ")
+        print("   Passos resumidos:")
+        print("   1. Instale as dependências do sistema para seu OS")
+        print("      (veja detalhes no guia de instalação)")
+        print("   2. Reinstale as dependências Python:")
+        print("      pip install --force-reinstall -r requirements.txt")
     else:
         print("\n✅ Reconhecimento facial disponível!")
+        print("   Funcionalidades habilitadas:")
+        print("   - 📸 Registro de Presença (cadastro facial)")
+        print("   - ✅ Frequência de Aula (marcação automática)")
+        print("   - 🔐 Anti-spoofing (detecção de fotos falsas)")
     
     if module_failed:
         print(f"\n⚠️  {len(module_failed)} módulos do sistema falharam")

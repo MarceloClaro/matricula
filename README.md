@@ -2,6 +2,8 @@
 
 Sistema completo de gerenciamento de matrículas escolares desenvolvido em Streamlit com persistência em CSV.
 
+> 📖 **Guia de Instalação do Reconhecimento Facial**: Para instruções detalhadas sobre como habilitar o reconhecimento facial, consulte [FACE_RECOGNITION_INSTALLATION.md](FACE_RECOGNITION_INSTALLATION.md)
+
 ## 📋 Funcionalidades
 
 ### Módulos de Cadastro
@@ -50,34 +52,41 @@ Sistema completo de gerenciamento de matrículas escolares desenvolvido em Strea
 
 ## 🚀 Instalação
 
-### Requisitos Básicos
+### Requisitos
 - Python 3.8 ou superior
 - pip
+- Webcam (para funcionalidade de reconhecimento facial)
 
-### Requisitos Opcionais (para Reconhecimento Facial)
-- Webcam
-- **Sistemas Linux/Mac/Streamlit Cloud**: CMake e build tools
-  ```bash
-  # Ubuntu/Debian
-  sudo apt-get install build-essential cmake libopenblas-dev liblapack-dev libx11-dev libgtk-3-dev
-  
-  # macOS
-  brew install cmake
-  ```
+### Dependências do Sistema (para Reconhecimento Facial)
 
-**Nota sobre Reconhecimento Facial:**
-O reconhecimento facial é **opcional**. O sistema funciona perfeitamente sem essas bibliotecas, oferecendo todas as funcionalidades principais (cadastro, dashboard, PDFs, etc.). Se você precisar do reconhecimento facial, instale as dependências opcionais separadamente (veja instruções abaixo).
+O sistema de reconhecimento facial requer algumas bibliotecas do sistema instaladas:
+
+**Ubuntu/Debian:**
+```bash
+sudo apt-get update
+sudo apt-get install build-essential cmake libopenblas-dev liblapack-dev libx11-dev libgtk-3-dev libatlas-base-dev gfortran
+```
+
+**macOS:**
+```bash
+brew install cmake
+```
+
+**Windows:**
+Recomenda-se usar Anaconda/Miniconda:
+```bash
+conda install -c conda-forge dlib
+```
 
 ### Implantação no Streamlit Cloud
 
-Para implantar no Streamlit Cloud:
-- O arquivo `requirements.txt` contém apenas as dependências essenciais
-- O arquivo `packages.txt` está configurado para suporte opcional ao reconhecimento facial
-- Se a instalação das dependências opcionais falhar, o app funcionará normalmente sem reconhecimento facial
+Para implantar no Streamlit Cloud, o sistema está configurado com:
+- `requirements.txt`: Contém todas as dependências Python, incluindo dlib e face-recognition
+- `packages.txt`: Contém as dependências do sistema necessárias para compilar dlib
+- O reconhecimento facial funcionará automaticamente se as dependências forem instaladas com sucesso
+- Se houver falha na instalação de dlib, o sistema continuará funcionando sem a funcionalidade de reconhecimento facial
 
-### Passos para instalação
-
-#### Instalação Básica (sem reconhecimento facial)
+### Passos para Instalação
 
 1. Clone o repositório:
 ```bash
@@ -85,53 +94,42 @@ git clone https://github.com/MarceloClaro/matricula.git
 cd matricula
 ```
 
-2. Instale as dependências básicas:
+2. **(Recomendado) Instale as dependências do sistema** (veja seção acima para seu sistema operacional)
+
+3. Instale as dependências Python:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Execute a aplicação:
+4. Execute a aplicação:
 ```bash
 streamlit run app.py
 ```
 
-4. Acesse no navegador:
+5. Acesse no navegador:
 ```
 http://localhost:8501
 ```
 
-#### Instalação Completa (com reconhecimento facial)
+### Instalação Alternativa (sem Reconhecimento Facial)
 
-Se você precisar da funcionalidade de reconhecimento facial:
+Se você encontrar problemas com a instalação do `dlib` ou não precisar de reconhecimento facial, você pode instalar apenas as dependências básicas:
 
-1. **(Opcional - Linux/Mac)** Instale as dependências do sistema:
 ```bash
-# Ubuntu/Debian
-sudo apt-get install build-essential cmake libopenblas-dev liblapack-dev libx11-dev libgtk-3-dev
-
-# macOS
-brew install cmake
+# Instale apenas as dependências básicas (sem dlib/face-recognition)
+pip install streamlit pandas reportlab pillow plotly opencv-python-headless scikit-learn numpy
 ```
 
-2. Instale as dependências opcionais:
-```bash
-pip install -r requirements-optional.txt
-```
+O sistema detectará automaticamente que o reconhecimento facial não está disponível e desabilitará essas funcionalidades.
 
-**Nota sobre instalação do dlib:** Se a instalação do `dlib` falhar (comum em ambientes Windows ou sistemas sem compilador C++), você pode:
-1. Usar o sistema sem reconhecimento facial (todas as outras funcionalidades continuarão funcionando)
-2. **Recomendado**: Usar conda-forge (mais seguro):
+**Nota sobre instalação do dlib:** Se a instalação do `dlib` falhar, você pode:
+1. **Recomendado**: Usar conda-forge (mais confiável):
    ```bash
    conda install -c conda-forge dlib
    pip install face-recognition tensorflow imgaug
    ```
-3. Instalar uma versão pré-compilada do dlib (use com cautela):
-   ```bash
-   # Windows: baixar wheel do dlib de https://github.com/z-mahmud22/Dlib_Windows_Python3.x
-   # IMPORTANTE: Verifique a integridade do arquivo antes de instalar
-   pip install dlib-19.24.2-cp310-cp310-win_amd64.whl  # ajuste para sua versão do Python
-   pip install face-recognition tensorflow imgaug
-   ```
+2. Usar o sistema sem reconhecimento facial (todas as outras funcionalidades continuarão funcionando)
+3. Para Windows, baixar uma versão pré-compilada (verifique a integridade do arquivo):
 
 ## 📁 Estrutura do Projeto
 
