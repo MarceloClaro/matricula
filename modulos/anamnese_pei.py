@@ -89,7 +89,7 @@ def render_anamnese_pei(data_manager):
             
             filiacao = st.text_area(
                 "Filiação *",
-                value=anamnese_atual.get('filiacao', f"Mãe: {aluno_info.get('nome_mae', '')}\nPai: {aluno_info.get('nome_pai', '')}"),
+                value=anamnese_atual.get('filiacao', ''),
                 height=80
             )
         

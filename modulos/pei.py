@@ -46,34 +46,43 @@ def render_pei(data_manager):
         pei_atual = {}
         
         # Auto-preencher necessidade especial
-        if pd.notna(aluno_cadastro.get('aluno_deficiencia')) and aluno_cadastro.get('aluno_deficiencia') == 'Sim':
+        aluno_deficiencia = aluno_cadastro.get('aluno_deficiencia')
+        if pd.notna(aluno_deficiencia) and aluno_deficiencia == 'Sim':
             pei_atual['necessidade_especial'] = 'Sim'
             
             # Auto-preencher tipo de deficiência
-            if pd.notna(aluno_cadastro.get('tipo_deficiencia')) and aluno_cadastro.get('tipo_deficiencia'):
-                pei_atual['tipo_deficiencia'] = aluno_cadastro['tipo_deficiencia']
+            tipo_deficiencia = aluno_cadastro.get('tipo_deficiencia')
+            if pd.notna(tipo_deficiencia) and tipo_deficiencia:
+                pei_atual['tipo_deficiencia'] = tipo_deficiencia
             
             # Auto-preencher laudo médico
-            if pd.notna(aluno_cadastro.get('possui_laudo_medico')) and aluno_cadastro.get('possui_laudo_medico') == 'Sim':
+            possui_laudo = aluno_cadastro.get('possui_laudo_medico')
+            if pd.notna(possui_laudo) and possui_laudo == 'Sim':
                 pei_atual['laudo_medico'] = 'Sim'
             
             # Auto-preencher CID
-            if pd.notna(aluno_cadastro.get('cid_10_dsm5')) and aluno_cadastro.get('cid_10_dsm5'):
-                pei_atual['cid'] = aluno_cadastro['cid_10_dsm5']
+            cid_10_dsm5 = aluno_cadastro.get('cid_10_dsm5')
+            if pd.notna(cid_10_dsm5) and cid_10_dsm5:
+                pei_atual['cid'] = cid_10_dsm5
             
             # Auto-preencher medicação
-            if pd.notna(aluno_cadastro.get('medicacao_uso')) and aluno_cadastro.get('medicacao_uso') == 'Sim':
+            medicacao_uso = aluno_cadastro.get('medicacao_uso')
+            if pd.notna(medicacao_uso) and medicacao_uso == 'Sim':
                 medicacao_info = []
-                if pd.notna(aluno_cadastro.get('nome_medicacao')) and aluno_cadastro.get('nome_medicacao'):
-                    medicacao_info.append(f"Medicação: {aluno_cadastro['nome_medicacao']}")
-                if pd.notna(aluno_cadastro.get('dosagem_medicacao')) and aluno_cadastro.get('dosagem_medicacao'):
-                    medicacao_info.append(f"Dosagem: {aluno_cadastro['dosagem_medicacao']}")
-                if pd.notna(aluno_cadastro.get('horario_medicacao')) and aluno_cadastro.get('horario_medicacao'):
-                    medicacao_info.append(f"Horário: {aluno_cadastro['horario_medicacao']}")
+                nome_med = aluno_cadastro.get('nome_medicacao')
+                if pd.notna(nome_med) and nome_med:
+                    medicacao_info.append(f"Medicação: {nome_med}")
+                dosagem = aluno_cadastro.get('dosagem_medicacao')
+                if pd.notna(dosagem) and dosagem:
+                    medicacao_info.append(f"Dosagem: {dosagem}")
+                horario = aluno_cadastro.get('horario_medicacao')
+                if pd.notna(horario) and horario:
+                    medicacao_info.append(f"Horário: {horario}")
                 if medicacao_info:
                     pei_atual['medicacao'] = '\n'.join(medicacao_info)
-            
-            # Exibir aviso de auto-preenchimento
+        
+        # Exibir aviso de auto-preenchimento
+        if pei_atual:
             st.success("✨ Alguns campos foram automaticamente preenchidos com informações do cadastro geral. Você pode editá-los se necessário.")
     
     with st.form("form_pei"):
