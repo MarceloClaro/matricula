@@ -2,7 +2,6 @@
 Módulo de Reconhecimento Facial com Anti-Spoofing
 Implementa captura de sequência de fotos, treinamento de modelo e detecção de faces
 """
-import cv2
 import numpy as np
 import os
 import pickle
@@ -10,6 +9,13 @@ import json
 import time
 from datetime import datetime
 from PIL import Image
+
+# Tentar importar cv2 (opencv)
+try:
+    import cv2
+    CV2_AVAILABLE = True
+except ImportError:
+    CV2_AVAILABLE = False
 
 # Tentar importar face_recognition e bibliotecas opcionais
 try:
@@ -51,7 +57,8 @@ class FaceRecognitionSystem:
         self.data_dir = data_dir
         self.faces_dir = os.path.join(data_dir, 'faces')
         self.models_dir = os.path.join(data_dir, 'models')
-        self.available = FACE_RECOGNITION_AVAILABLE
+        # Sistema está disponível apenas se todas as dependências estão instaladas
+        self.available = FACE_RECOGNITION_AVAILABLE and CV2_AVAILABLE
         
         # Criar diretórios se não existirem
         os.makedirs(self.faces_dir, exist_ok=True)
@@ -88,6 +95,10 @@ class FaceRecognitionSystem:
         Returns:
             list: Lista de caminhos das fotos salvas
         """
+        if not CV2_AVAILABLE:
+            st.error("❌ OpenCV (cv2) não está disponível. Instale opencv-python ou opencv-python-headless.")
+            return []
+        
         cap = cv2.VideoCapture(0)
         if not cap.isOpened():
             st.error("Não foi possível acessar a webcam")
@@ -149,6 +160,10 @@ class FaceRecognitionSystem:
         Returns:
             list: Lista de imagens aumentadas (numpy arrays)
         """
+        if not CV2_AVAILABLE:
+            # Sem cv2, não podemos processar imagens
+            return []
+        
         if not IMGAUG_AVAILABLE:
             # Sem augmentation, retornar apenas as imagens originais
             images = []
@@ -293,7 +308,7 @@ class FaceRecognitionSystem:
         Returns:
             tuple: (aluno_id, confidence, face_location) ou (None, 0, None)
         """
-        if not self.available:
+        if not self.available or not CV2_AVAILABLE:
             return None, 0, None
         
         if len(self.known_face_encodings) == 0:
@@ -338,6 +353,10 @@ class FaceRecognitionSystem:
         Returns:
             bool: True se treinamento foi bem sucedido
         """
+        if not CV2_AVAILABLE:
+            st.warning("OpenCV não está disponível. Anti-spoofing desabilitado.")
+            return False
+        
         if not TENSORFLOW_AVAILABLE or not SKLEARN_AVAILABLE:
             st.warning("TensorFlow ou scikit-learn não está disponível. Anti-spoofing desabilitado.")
             return False
@@ -423,7 +442,7 @@ class FaceRecognitionSystem:
         Returns:
             tuple: (is_real, confidence)
         """
-        if self.liveness_model is None:
+        if not CV2_AVAILABLE or self.liveness_model is None:
             # Detecção básica sem modelo: sempre retorna True
             # Na prática, poderia usar técnicas heurísticas simples
             return True, 0.5
@@ -453,6 +472,10 @@ class FaceRecognitionSystem:
         Returns:
             dict: Dados da presença registrada ou None
         """
+        if not CV2_AVAILABLE:
+            st.error("❌ OpenCV (cv2) não está disponível. Instale opencv-python ou opencv-python-headless.")
+            return None
+        
         cap = cv2.VideoCapture(0)
         if not cap.isOpened():
             st.error("Não foi possível acessar a webcam")
