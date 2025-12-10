@@ -53,6 +53,28 @@ import streamlit as st
 class FaceRecognitionSystem:
     """Sistema de reconhecimento facial com anti-spoofing"""
     
+    # Constantes de qualidade de imagem
+    MIN_SHARPNESS = 50
+    IDEAL_BRIGHTNESS = 128
+    MIN_FACE_SIZE_RATIO = 0.2
+    MAX_FACE_SIZE_RATIO = 0.4
+    
+    # Pesos para score de qualidade
+    SHARPNESS_WEIGHT = 0.35
+    BRIGHTNESS_WEIGHT = 0.25
+    FACE_SIZE_WEIGHT = 0.40
+    
+    # Limites de validação de treinamento
+    EXCELLENT_DISTANCE = 0.4
+    GOOD_DISTANCE = 0.6
+    ACCEPTABLE_DISTANCE = 0.7
+    
+    # Thresholds adaptativos de reconhecimento
+    THRESHOLD_DEFAULT = 0.50
+    THRESHOLD_RELAXED = 0.55
+    THRESHOLD_STRICT = 0.45
+    THRESHOLD_DIFF_MIN = 0.1  # Diferença mínima entre 1º e 2º para usar threshold relaxado
+    
     def __init__(self, data_dir='data'):
         self.data_dir = data_dir
         self.faces_dir = os.path.join(data_dir, 'faces')
@@ -105,11 +127,12 @@ class FaceRecognitionSystem:
         
         # 2. Avaliar brilho (média de intensidade)
         brightness = gray.mean()
-        brightness_score = 1.0 - abs(brightness - 128) / 128  # Ideal em torno de 128
+        brightness_score = 1.0 - abs(brightness - self.IDEAL_BRIGHTNESS) / self.IDEAL_BRIGHTNESS
         
         # 3. Detectar face
         has_face = False
         face_size_score = 0.0
+        face_locations = None
         
         if self.available:
             rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -120,26 +143,25 @@ class FaceRecognitionSystem:
                 # Avaliar tamanho da face (face maior = melhor)
                 top, right, bottom, left = face_locations[0]
                 face_height = bottom - top
-                face_width = right - left
                 frame_height, frame_width = frame.shape[:2]
                 
-                # Face ideal ocupa 20-40% da altura do frame
+                # Face ideal ocupa MIN_FACE_SIZE_RATIO-MAX_FACE_SIZE_RATIO da altura do frame
                 face_ratio = face_height / frame_height
-                if 0.2 <= face_ratio <= 0.4:
+                if self.MIN_FACE_SIZE_RATIO <= face_ratio <= self.MAX_FACE_SIZE_RATIO:
                     face_size_score = 1.0
-                elif face_ratio < 0.2:
-                    face_size_score = face_ratio / 0.2
+                elif face_ratio < self.MIN_FACE_SIZE_RATIO:
+                    face_size_score = face_ratio / self.MIN_FACE_SIZE_RATIO
                 else:
-                    face_size_score = 0.4 / face_ratio
+                    face_size_score = self.MAX_FACE_SIZE_RATIO / face_ratio
         
         # Calcular score geral (ponderado)
         if not has_face:
             overall_score = 0.0
         else:
             overall_score = (
-                sharpness_score * 0.35 +
-                brightness_score * 0.25 +
-                face_size_score * 0.40
+                sharpness_score * self.SHARPNESS_WEIGHT +
+                brightness_score * self.BRIGHTNESS_WEIGHT +
+                face_size_score * self.FACE_SIZE_WEIGHT
             )
         
         return {
@@ -199,7 +221,7 @@ class FaceRecognitionSystem:
         start_time = datetime.now()
         photo_count = 0
         attempts = 0
-        max_attempts = num_photos * 3  # Permitir mais tentativas para atingir qualidade
+        max_attempts = min(num_photos * 3, 150)  # Limitar para evitar loops infinitos
         
         while photo_count < num_photos and attempts < max_attempts:
             ret, frame = cap.read()
@@ -404,22 +426,31 @@ class FaceRecognitionSystem:
                 'is_valid': len(encodings) > 0
             }
         
+        # Otimização: Para muitos encodings, amostrar para evitar O(n²)
+        max_sample_size = 50
+        if len(encodings) > max_sample_size:
+            import random
+            sample_indices = random.sample(range(len(encodings)), max_sample_size)
+            sampled_encodings = [encodings[i] for i in sample_indices]
+        else:
+            sampled_encodings = encodings
+        
         # Calcular distância média entre todos os pares de encodings
         distances = []
-        for i in range(len(encodings)):
-            for j in range(i + 1, len(encodings)):
-                dist = face_recognition.face_distance([encodings[i]], encodings[j])[0]
-                distances.append(dist)
+        for i in range(len(sampled_encodings)):
+            # Calcular distâncias vetorizadas para este encoding
+            other_encodings = sampled_encodings[i+1:]
+            if other_encodings:
+                dists = face_recognition.face_distance(other_encodings, sampled_encodings[i])
+                distances.extend(dists)
         
         avg_distance = sum(distances) / len(distances) if distances else 0.0
         
         # Score de consistência (menor distância = maior consistência)
-        # Distância típica entre faces da mesma pessoa: 0.4-0.6
-        # Abaixo de 0.6 é bom
-        consistency_score = 1.0 - min(avg_distance / 0.6, 1.0)
+        consistency_score = 1.0 - min(avg_distance / self.GOOD_DISTANCE, 1.0)
         
         # Considerar válido se consistência for razoável
-        is_valid = avg_distance < 0.7
+        is_valid = avg_distance < self.ACCEPTABLE_DISTANCE
         
         return {
             'consistency_score': consistency_score,
@@ -480,6 +511,12 @@ class FaceRecognitionSystem:
         self.save_embeddings()
         
         # Mostrar métricas detalhadas
+        quality_label = (
+            '⭐ Excelente' if validation['avg_distance'] < self.EXCELLENT_DISTANCE 
+            else '✅ Boa' if validation['avg_distance'] < self.GOOD_DISTANCE 
+            else '⚠️ Aceitável'
+        )
+        
         st.success(f"""
         ✅ **Treinamento concluído com sucesso!**
         
@@ -487,13 +524,13 @@ class FaceRecognitionSystem:
         - Encodings gerados: {len(encodings)}
         - Consistência: {validation['consistency_score']:.2%}
         - Distância média interna: {validation['avg_distance']:.3f}
-        - Qualidade: {'⭐ Excelente' if validation['avg_distance'] < 0.4 else '✅ Boa' if validation['avg_distance'] < 0.6 else '⚠️ Aceitável'}
+        - Qualidade: {quality_label}
         
         💡 **Interpretação:**
-        - Distância < 0.4: Excelente qualidade
-        - Distância 0.4-0.6: Boa qualidade (recomendado)
-        - Distância 0.6-0.7: Aceitável
-        - Distância > 0.7: Considere retreinar
+        - Distância < {self.EXCELLENT_DISTANCE}: Excelente qualidade
+        - Distância {self.EXCELLENT_DISTANCE}-{self.GOOD_DISTANCE}: Boa qualidade (recomendado)
+        - Distância {self.GOOD_DISTANCE}-{self.ACCEPTABLE_DISTANCE}: Aceitável
+        - Distância > {self.ACCEPTABLE_DISTANCE}: Considere retreinar
         """)
         
         return True
@@ -581,14 +618,14 @@ class FaceRecognitionSystem:
                 if len(sorted_alunos) > 1:
                     second_distance = sorted_alunos[1][1]
                     # Se a diferença é grande, podemos ser mais confiantes
-                    if (second_distance - best_distance) > 0.1:
-                        threshold = 0.55  # Mais relaxado
+                    if (second_distance - best_distance) > self.THRESHOLD_DIFF_MIN:
+                        threshold = self.THRESHOLD_RELAXED
                     else:
-                        threshold = 0.45  # Mais restritivo
+                        threshold = self.THRESHOLD_STRICT
                 else:
-                    threshold = 0.50
+                    threshold = self.THRESHOLD_DEFAULT
             else:
-                threshold = 0.50
+                threshold = self.THRESHOLD_DEFAULT
             
             # Verificar se melhor match está dentro do threshold
             if len(sorted_alunos) > 0:
@@ -857,7 +894,7 @@ class FaceRecognitionSystem:
                                 'hora': now.strftime('%H:%M:%S'),
                                 'tipo': 'entrada',
                                 'verificado': 'Sim',
-                                'confianca': f"{avg_confidence:.2%}",
+                                'confianca': f"{avg_confidence:.2%}",  # Mantém nome do campo para compatibilidade com banco
                                 'observacoes': f"Liveness: {liveness_conf:.2%} | Confirmações: {confirmation_frames}",
                                 'data_registro': now.strftime('%Y-%m-%d %H:%M:%S')
                             }
@@ -892,7 +929,7 @@ class FaceRecognitionSystem:
                 if face_location is not None:
                     top, right, bottom, left = face_location
                     cv2.rectangle(frame_display, (left, top), (right, bottom), (200, 200, 200), 2)
-                    cv2.putText(frame_display, f"Baixa confianca: {confidence:.2%}", 
+                    cv2.putText(frame_display, f"Baixa confiança: {confidence:.2%}", 
                               (left, top - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 2)
             
             # Adicionar status no frame
