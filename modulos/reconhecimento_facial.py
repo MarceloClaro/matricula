@@ -8,6 +8,7 @@ import numpy as np
 import os
 import pickle
 import json
+import time
 from datetime import datetime
 from PIL import Image
 import imgaug.augmenters as iaa
@@ -43,7 +44,8 @@ class FaceRecognitionSystem:
         if os.path.exists(self.liveness_model_path):
             try:
                 self.liveness_model = load_model(self.liveness_model_path)
-            except:
+            except (OSError, ValueError) as e:
+                # Log error but continue without liveness model
                 self.liveness_model = None
     
     def capture_photo_sequence(self, aluno_id, num_photos=30, duration=10):
@@ -231,7 +233,8 @@ class FaceRecognitionSystem:
                     data = pickle.load(f)
                     self.known_face_encodings = data['encodings']
                     self.known_face_ids = data['ids']
-            except:
+            except (EOFError, pickle.UnpicklingError, KeyError) as e:
+                # If embeddings file is corrupted, start fresh
                 self.known_face_encodings = []
                 self.known_face_ids = []
     
@@ -475,7 +478,6 @@ class FaceRecognitionSystem:
             placeholder.image(frame_rgb, caption='Webcam', use_column_width=True)
             
             # Pequeno delay
-            import time
             time.sleep(0.1)
         
         cap.release()

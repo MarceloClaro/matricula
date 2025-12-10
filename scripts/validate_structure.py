@@ -42,7 +42,9 @@ def main():
     print("=" * 60)
     print()
     
-    base_dir = "/home/runner/work/matricula/matricula"
+    # Get base directory relative to script location
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    base_dir = os.path.dirname(script_dir)  # Go up one level from scripts/
     
     # Arquivos para validar
     files_to_check = [
