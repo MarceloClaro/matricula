@@ -25,11 +25,11 @@ def render_registro_presenca(data_manager):
         st.error("""
         ❌ **Reconhecimento Facial não está disponível**
         
-        As bibliotecas necessárias (face_recognition e dlib) não foram instaladas corretamente.
+        As bibliotecas necessárias (opencv-python, face_recognition e dlib) não foram instaladas corretamente.
         
         **Para habilitar esta funcionalidade:**
         - Instale as dependências do sistema: `build-essential`, `cmake`, `libopenblas-dev`
-        - Execute: `pip install dlib face-recognition`
+        - Execute: `pip install opencv-python-headless dlib face-recognition`
         
         No Streamlit Cloud, certifique-se de que o arquivo `packages.txt` contém as dependências necessárias.
         """)
