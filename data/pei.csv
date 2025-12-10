@@ -1,2 +1,3 @@
 id,aluno_id,necessidade_especial,tipo_deficiencia,laudo_medico,data_laudo,cid,medicacao,restricoes,apoio_necessario,adaptacao_curricular,acompanhamento_especializado,recursos_necessarios,observacoes,data_cadastro
 1,1,Sim,Deficiência Auditiva,Sim,2024-01-15,H90.3,Não,Usar aparelho auditivo,Intérprete de Libras,Sim,Fonoaudiologia,"Aparelho auditivo, material visual",Aluno participa bem das atividades com apoio,2025-12-09 23:11:40
+2,1,Sim,TDAH,,,,,,Acompanhamento pedagógico,,,,,2025-12-10 00:13:00
