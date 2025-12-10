@@ -25,7 +25,9 @@ class DataManager:
             'socioeconomico': os.path.join(data_dir, 'socioeconomico.csv'),
             'saude': os.path.join(data_dir, 'saude.csv'),
             'questionario_saeb': os.path.join(data_dir, 'questionario_saeb.csv'),
-            'anamnese_pei': os.path.join(data_dir, 'anamnese_pei.csv')
+            'anamnese_pei': os.path.join(data_dir, 'anamnese_pei.csv'),
+            'face_embeddings': os.path.join(data_dir, 'face_embeddings.csv'),
+            'attendance': os.path.join(data_dir, 'attendance.csv')
         }
         
         self._init_files()
@@ -161,6 +163,21 @@ class DataManager:
                 'formacao_profissional', 'registro_profissional', 'data_cadastro'
             ])
             df.to_csv(self.files['anamnese_pei'], index=False)
+        
+        # Face Embeddings (for face recognition)
+        if not os.path.exists(self.files['face_embeddings']):
+            df = pd.DataFrame(columns=[
+                'id', 'aluno_id', 'embedding', 'photo_path', 'data_cadastro'
+            ])
+            df.to_csv(self.files['face_embeddings'], index=False)
+        
+        # Attendance Records
+        if not os.path.exists(self.files['attendance']):
+            df = pd.DataFrame(columns=[
+                'id', 'aluno_id', 'data', 'hora', 'tipo', 'verificado', 
+                'confianca', 'observacoes', 'data_registro'
+            ])
+            df.to_csv(self.files['attendance'], index=False)
     
     def get_data(self, tipo):
         """Retorna dados do tipo especificado"""

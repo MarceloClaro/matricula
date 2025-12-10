@@ -12,6 +12,25 @@ Sistema completo de gerenciamento de matrículas escolares desenvolvido em Strea
 - **Questionário SAEB/SPAECE**: Questionário completo do aluno baseado no SAEB/SPAECE com 13 seções
 - **Saúde**: Ficha de saúde com dados médicos e contato de emergência
 
+### 🆕 Reconhecimento Facial e Controle de Presença
+- **Registro de Presença**: 
+  - Captura automática de 30 fotos em 10 segundos via webcam
+  - Data augmentation para melhor precisão (flip, rotação, escala, brilho, blur)
+  - Treinamento automático de reconhecimento facial
+  - Suporte para re-treinamento do modelo
+- **Frequência de Aula**:
+  - Marcação automática de presença via reconhecimento facial
+  - Anti-spoofing (detecção de liveness) para evitar fraudes com fotos
+  - Registro com data, hora e nível de confiança
+  - Visualização de registros do dia e histórico completo
+  - Exportação de relatórios de presença em CSV
+- **Características Técnicas**:
+  - Face recognition com face_recognition library
+  - CNN para detecção de liveness (anti-spoofing)
+  - Early stopping para evitar overfitting
+  - Persistência de embeddings faciais
+  - Confiança mínima de 60% para reconhecimento
+
 ### Gestão e Análise
 - **Dashboard**: Visualização de estatísticas e gráficos interativos
 - **CRUD Completo**: Criar, ler, atualizar e deletar registros
@@ -27,12 +46,22 @@ Sistema completo de gerenciamento de matrículas escolares desenvolvido em Strea
 
 ### Segurança
 - **Backup e Restauração**: Sistema completo de backup e recuperação de todos os dados
+- **Anti-Spoofing**: Sistema de detecção de fotos para evitar fraudes na marcação de presença
 
 ## 🚀 Instalação
 
 ### Requisitos
 - Python 3.8 ou superior
 - pip
+- Webcam (para reconhecimento facial)
+- **Sistemas Linux/Mac**: CMake e dlib dependencies
+  ```bash
+  # Ubuntu/Debian
+  sudo apt-get install cmake libopenblas-dev liblapack-dev
+  
+  # macOS
+  brew install cmake
+  ```
 
 ### Passos para instalação
 
@@ -45,6 +74,12 @@ cd matricula
 2. Instale as dependências:
 ```bash
 pip install -r requirements.txt
+```
+
+**Nota:** Em alguns sistemas, pode ser necessário instalar o dlib manualmente:
+```bash
+pip install cmake
+pip install dlib
 ```
 
 3. Execute a aplicação:
@@ -71,6 +106,9 @@ matricula/
 │   ├── socioeconomico.py      # Módulo socioeconômico
 │   ├── questionario_saeb.py   # Módulo questionário SAEB/SPAECE
 │   ├── saude.py               # Módulo de saúde
+│   ├── reconhecimento_facial.py  # Sistema de reconhecimento facial
+│   ├── registro_presenca.py   # Cadastro facial de alunos
+│   ├── frequencia_aula.py     # Marcação de presença facial
 │   ├── dashboard.py           # Dashboard com gráficos
 │   ├── crud.py                # Gerenciamento CRUD
 │   ├── busca.py               # Busca inteligente
@@ -79,20 +117,31 @@ matricula/
 │   └── backup.py              # Backup e restauração
 └── data/                       # Dados CSV (criado automaticamente)
     ├── fotos/                 # Fotos dos alunos (3x4)
+    ├── faces/                 # Fotos para reconhecimento facial
+    │   └── aluno_{id}/       # 30 fotos por aluno
+    ├── models/                # Modelos treinados
+    │   ├── face_embeddings.pkl   # Encodings faciais
+    │   └── liveness_model.h5     # Modelo anti-spoofing
     ├── cadastro_geral.csv
     ├── pei.csv
     ├── socioeconomico.csv
     ├── questionario_saeb.csv
-    └── saude.csv
+    ├── saude.csv
+    ├── face_embeddings.csv    # Registro de embeddings
+    └── attendance.csv         # Registros de presença
 ```
 
 ## 💾 Persistência de Dados
 
 Os dados são armazenados em arquivos CSV na pasta `data/`:
 - **fotos/**: Fotos dos alunos em formato JPEG (3x4, otimizadas)
+- **faces/**: Fotos capturadas para reconhecimento facial (30 fotos por aluno)
+- **models/**: Modelos de ML treinados (embeddings e anti-spoofing)
 - **cadastro_geral.csv**: Dados pessoais e escolares dos alunos
 - **pei.csv**: Informações do Plano Educacional Individualizado
 - **socioeconomico.csv**: Dados socioeconômicos
+- **face_embeddings.csv**: Registro de cadastros faciais
+- **attendance.csv**: Registros de presença com data/hora/confiança
 - **questionario_saeb.csv**: Questionário SAEB/SPAECE do aluno
 - **saude.csv**: Informações de saúde
 
@@ -188,18 +237,26 @@ O sistema inclui funcionalidade completa de backup e restauração:
 - **Pandas**: Manipulação de dados CSV
 - **ReportLab**: Geração de PDFs
 - **Plotly**: Gráficos interativos
+- **OpenCV**: Processamento de imagens e captura de webcam
+- **face_recognition**: Reconhecimento facial baseado em dlib
+- **TensorFlow/Keras**: Modelo CNN para detecção de liveness
+- **imgaug**: Data augmentation para treinamento
+- **scikit-learn**: Ferramentas de machine learning
 - **Python**: Linguagem principal
 
 ## 📝 Como Usar
 
+### Fluxo Básico
 1. **Cadastrar Alunos**: Acesse "Cadastro Geral" e preencha os dados
    - **Novo!** 📸 Faça upload da foto 3x4 do aluno no primeiro campo
 2. **Completar Informações**: Preencha PEI, Socioeconômico, Questionário SAEB e Saúde para cada aluno
-3. **Visualizar Estatísticas**: Acesse o Dashboard
-4. **Buscar Alunos**: Use a busca inteligente
-5. **Gerar Documentos**: Crie PDFs individuais ou exportação em lote
+3. **Cadastrar Face**: Use "Registro de Presença" para capturar fotos faciais
+4. **Marcar Presença**: Use "Frequência de Aula" para reconhecimento automático
+5. **Visualizar Estatísticas**: Acesse o Dashboard
+6. **Buscar Alunos**: Use a busca inteligente
+7. **Gerar Documentos**: Crie PDFs individuais ou exportação em lote
    - PDFs agora incluem a foto do aluno automaticamente
-6. **Exportar Dados**: Use a aba "Lista de Alunos" para exportar em JSON ou gerar PDFs em lote
+8. **Exportar Dados**: Use a aba "Lista de Alunos" para exportar em JSON ou gerar PDFs em lote
 
 ### 📸 Upload de Fotos
 
@@ -214,6 +271,89 @@ O sistema inclui funcionalidade completa de backup e restauração:
 2. No campo "Foto do Aluno (3x4)", clique em "Browse files"
 3. Selecione a foto do aluno
 4. A foto será processada e salva automaticamente ao finalizar o cadastro
+
+### 🆕 Sistema de Reconhecimento Facial
+
+O sistema agora inclui reconhecimento facial completo com anti-spoofing para controle de presença.
+
+#### 📸 Registro de Presença (Cadastro Facial)
+
+**Como cadastrar um aluno para reconhecimento facial:**
+
+1. Acesse "Registro de Presença" no menu
+2. Selecione o aluno já cadastrado no sistema
+3. Clique em "Iniciar Captura de Fotos"
+4. O sistema irá capturar 30 fotos em 10 segundos automaticamente
+5. Durante a captura, varie levemente a posição da cabeça
+6. O sistema aplica data augmentation (flip, rotação, escala, brilho, blur)
+7. Aguarde o treinamento automático do modelo
+8. Pronto! O aluno já pode marcar presença via reconhecimento facial
+
+**Dicas para melhor captura:**
+- Mantenha boa iluminação (evite contra-luz)
+- Posicione o rosto centralizado na câmera
+- Mantenha distância de 50-80cm da câmera
+- Varie levemente a posição (não exagere nos movimentos)
+- Evite usar óculos escuros ou chapéus
+
+**Re-treinamento:**
+- Use a aba "Re-treinar Modelo" para retreinar todos os alunos
+- Útil após cadastrar vários alunos novos
+- Melhora a precisão geral do sistema
+
+#### ✅ Frequência de Aula (Marcação de Presença)
+
+**Como marcar presença:**
+
+1. Acesse "Frequência de Aula" no menu
+2. Clique em "Iniciar Reconhecimento Facial"
+3. Posicione seu rosto na frente da câmera
+4. O sistema reconhecerá automaticamente em segundos
+5. A presença será registrada com:
+   - Data e hora
+   - Nível de confiança (mínimo 60%)
+   - Status de verificação
+
+**Segurança Anti-Spoofing:**
+- O sistema detecta fotos e rejeita automaticamente
+- Usa modelo CNN treinado para liveness detection
+- Impede fraudes com fotos impressas ou em telas
+- Mensagem "FOTO DETECTADA!" aparece se tentar usar foto
+
+**Visualização de Registros:**
+- Aba "Registros de Hoje": veja presenças do dia atual
+- Aba "Histórico Completo": acesse registros anteriores
+- Filtros por data e aluno
+- Exportação em CSV para relatórios
+- Gráficos de presença por data e por aluno
+
+#### 🔐 Características Técnicas
+
+**Reconhecimento Facial:**
+- Biblioteca: face_recognition (baseada em dlib)
+- Algoritmo: 128-dimensional face encoding
+- Tolerância: 0.5 (balanço entre precisão e recall)
+- Confiança mínima: 60%
+
+**Data Augmentation:**
+- Flip horizontal: 50% das imagens
+- Rotação: -10° a +10°
+- Escala: 90% a 110%
+- Brilho: 80% a 120%
+- Blur gaussiano leve
+
+**Anti-Spoofing:**
+- Modelo: CNN (Convolutional Neural Network)
+- Arquitetura: 3 camadas Conv2D + Dense
+- Early stopping com patience=3
+- Input: 64x64 pixels RGB
+- Output: probabilidade de ser real (0-1)
+
+**Persistência:**
+- Face embeddings salvos em pickle
+- Modelo de liveness em formato H5 (Keras)
+- Registros de presença em CSV
+- Fotos originais mantidas para re-treinamento
 
 ### 📋 Questionário SAEB/SPAECE
 
