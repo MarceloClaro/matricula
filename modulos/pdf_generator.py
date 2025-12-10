@@ -6,10 +6,11 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Image as RLImage
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from datetime import datetime
 import io
+import os
 
 def render_pdf_generator(data_manager):
     """Renderiza interface para gerar PDF individual"""
@@ -128,6 +129,47 @@ def gerar_pdf_aluno(data_manager, aluno_id, incluir_pei=True, incluir_anamnese=T
     cadastro = data_manager.get_record('cadastro', aluno_id)
     
     if cadastro:
+        # Adicionar foto se disponível
+        foto_path = cadastro.get('foto_path', '')
+        if foto_path and os.path.exists(foto_path):
+            try:
+                # Criar tabela com foto e informações básicas lado a lado
+                foto_img = RLImage(foto_path, width=3*cm, height=4*cm)
+                
+                # Dados básicos para exibir ao lado da foto
+                dados_basicos_texto = f"""
+                <b>ID:</b> {cadastro.get('id', '')}<br/>
+                <b>Nome:</b> {cadastro.get('nome_completo', '')}<br/>
+                <b>CPF:</b> {cadastro.get('cpf', '')}<br/>
+                <b>Data Nasc.:</b> {cadastro.get('data_nascimento', '')}<br/>
+                <b>Matrícula:</b> {cadastro.get('data_matricula', '')}
+                """
+                
+                info_style = ParagraphStyle(
+                    'InfoStyle',
+                    parent=styles['Normal'],
+                    fontSize=9,
+                    leading=12
+                )
+                
+                dados_basicos_para = Paragraph(dados_basicos_texto, info_style)
+                
+                # Tabela com foto e dados básicos
+                foto_table = Table([[foto_img, dados_basicos_para]], colWidths=[3.5*cm, 15*cm])
+                foto_table.setStyle(TableStyle([
+                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                    ('ALIGN', (0, 0), (0, 0), 'CENTER'),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 5),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 5),
+                    ('TOPPADDING', (0, 0), (-1, -1), 5),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+                ]))
+                elements.append(foto_table)
+                elements.append(Spacer(1, 0.3*cm))
+            except Exception as e:
+                # Se houver erro ao carregar foto, continua sem ela
+                pass
+        
         elements.append(Paragraph("DADOS PESSOAIS", heading_style))
         
         dados_pessoais = [

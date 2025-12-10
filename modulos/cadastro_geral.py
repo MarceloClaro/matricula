@@ -4,6 +4,11 @@ Módulo de Cadastro Geral de Alunos
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+import os
+from PIL import Image
+import io
+import json
+import zipfile
 
 def render_cadastro_geral(data_manager):
     """Renderiza formulário de cadastro geral completo"""
@@ -439,10 +444,37 @@ def render_cadastro_geral(data_manager):
                 # Processar foto se fornecida
                 foto_path = ""
                 if foto is not None:
-                    # TODO: Implementar salvamento real de foto em diretório específico
-                    # Por enquanto, deixa vazio para evitar referências incorretas
-                    foto_path = ""
-                    st.info("ℹ️ Upload de foto será implementado em versão futura.")
+                    try:
+                        # Criar diretório de fotos se não existir
+                        fotos_dir = os.path.join('data', 'fotos')
+                        os.makedirs(fotos_dir, exist_ok=True)
+                        
+                        # Gerar ID temporário para o nome da foto
+                        df_temp = data_manager.get_data('cadastro')
+                        if len(df_temp) == 0:
+                            temp_id = 1
+                        else:
+                            temp_id = df_temp['id'].max() + 1
+                        
+                        # Abrir e redimensionar imagem para tamanho padrão (3x4)
+                        img = Image.open(foto)
+                        # Redimensionar mantendo proporção para 300x400 pixels (3x4)
+                        img.thumbnail((300, 400), Image.Resampling.LANCZOS)
+                        
+                        # Salvar foto com nome único
+                        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                        foto_filename = f"{temp_id}_{timestamp}.jpg"
+                        foto_path = os.path.join(fotos_dir, foto_filename)
+                        
+                        # Converter para RGB se necessário (para salvar como JPEG)
+                        if img.mode in ('RGBA', 'LA', 'P'):
+                            img = img.convert('RGB')
+                        
+                        img.save(foto_path, 'JPEG', quality=85)
+                        st.success(f"✅ Foto salva com sucesso!")
+                    except Exception as e:
+                        st.warning(f"⚠️ Erro ao salvar foto: {str(e)}. Cadastro será salvo sem foto.")
+                        foto_path = ""
                 
                 # Converter lista de recursos para string
                 recursos_saeb_str = ", ".join(recursos_saeb) if recursos_saeb else ""
@@ -641,6 +673,168 @@ def render_lista_alunos(data_manager):
                       'ano_escolar', 'turno', 'telefone', 'aluno_especial_pei', 'status']
     
     st.dataframe(df_filtrado[colunas_exibir], use_container_width=True)
+    
+    # Botões para exportação em lote
+    st.markdown("---")
+    st.subheader("📊 Exportar Lista de Alunos")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("📥 Exportar JSON", use_container_width=True, key="btn_export_json"):
+            try:
+                import json
+                
+                # Preparar dados para JSON
+                json_data = df_filtrado.to_dict(orient='records')
+                
+                # Converter para JSON string
+                json_str = json.dumps(json_data, ensure_ascii=False, indent=2, default=str)
+                
+                # Nome do arquivo
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                nome_arquivo = f"lista_alunos_{timestamp}.json"
+                
+                st.download_button(
+                    label="📥 Baixar JSON",
+                    data=json_str,
+                    file_name=nome_arquivo,
+                    mime="application/json",
+                    use_container_width=True,
+                    key="download_json"
+                )
+                st.success("✅ JSON gerado com sucesso!")
+            except Exception as e:
+                st.error(f"❌ Erro ao gerar JSON: {str(e)}")
+    
+    with col2:
+        if st.button("📄 Gerar PDFs em Lote", use_container_width=True, key="btn_bulk_pdf"):
+            if len(df_filtrado) == 0:
+                st.warning("⚠️ Nenhum aluno na lista filtrada")
+            else:
+                with st.spinner(f"Gerando {len(df_filtrado)} PDFs..."):
+                    try:
+                        import zipfile
+                        from . import pdf_generator
+                        
+                        # Criar ZIP em memória
+                        zip_buffer = io.BytesIO()
+                        
+                        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                            for _, row in df_filtrado.iterrows():
+                                aluno_id = int(row['id'])
+                                
+                                # Gerar PDF
+                                pdf_buffer = pdf_generator.gerar_pdf_aluno(
+                                    data_manager,
+                                    aluno_id,
+                                    incluir_pei=True,
+                                    incluir_anamnese=True,
+                                    incluir_socio=True,
+                                    incluir_saeb=True,
+                                    incluir_saude=True
+                                )
+                                
+                                if pdf_buffer:
+                                    # Sanitizar nome
+                                    nome_limpo = "".join(c for c in row['nome_completo'] if c.isalnum() or c in (' ', '_')).strip().replace(' ', '_')
+                                    pdf_filename = f"ficha_{aluno_id}_{nome_limpo}.pdf"
+                                    
+                                    # Adicionar ao ZIP
+                                    zipf.writestr(pdf_filename, pdf_buffer)
+                        
+                        zip_buffer.seek(0)
+                        
+                        # Nome do arquivo ZIP
+                        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                        nome_arquivo_zip = f"fichas_alunos_{timestamp}.zip"
+                        
+                        st.download_button(
+                            label="📥 Baixar ZIP com PDFs",
+                            data=zip_buffer.getvalue(),
+                            file_name=nome_arquivo_zip,
+                            mime="application/zip",
+                            use_container_width=True,
+                            key="download_zip_bulk"
+                        )
+                        st.success(f"✅ {len(df_filtrado)} PDFs gerados com sucesso!")
+                    except Exception as e:
+                        st.error(f"❌ Erro ao gerar PDFs: {str(e)}")
+    
+    with col3:
+        if st.button("📦 Exportar PDF+JSON", use_container_width=True, key="btn_export_all"):
+            if len(df_filtrado) == 0:
+                st.warning("⚠️ Nenhum aluno na lista filtrada")
+            else:
+                with st.spinner(f"Gerando exportação completa..."):
+                    try:
+                        import zipfile
+                        import json
+                        from . import pdf_generator
+                        
+                        # Criar ZIP em memória
+                        zip_buffer = io.BytesIO()
+                        
+                        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                            # Adicionar PDFs
+                            for _, row in df_filtrado.iterrows():
+                                aluno_id = int(row['id'])
+                                
+                                # Gerar PDF
+                                pdf_buffer = pdf_generator.gerar_pdf_aluno(
+                                    data_manager,
+                                    aluno_id,
+                                    incluir_pei=True,
+                                    incluir_anamnese=True,
+                                    incluir_socio=True,
+                                    incluir_saeb=True,
+                                    incluir_saude=True
+                                )
+                                
+                                if pdf_buffer:
+                                    # Sanitizar nome
+                                    nome_limpo = "".join(c for c in row['nome_completo'] if c.isalnum() or c in (' ', '_')).strip().replace(' ', '_')
+                                    pdf_filename = f"pdfs/ficha_{aluno_id}_{nome_limpo}.pdf"
+                                    
+                                    # Adicionar ao ZIP
+                                    zipf.writestr(pdf_filename, pdf_buffer)
+                            
+                            # Adicionar JSON com dados completos
+                            json_data = df_filtrado.to_dict(orient='records')
+                            json_str = json.dumps(json_data, ensure_ascii=False, indent=2, default=str)
+                            zipf.writestr('dados/lista_alunos.json', json_str)
+                            
+                            # Adicionar README
+                            readme_content = f"""EXPORTAÇÃO DE DADOS - LISTA DE ALUNOS
+                            
+Data de Exportação: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
+Total de Alunos: {len(df_filtrado)}
+
+CONTEÚDO:
+- pdfs/ - Contém {len(df_filtrado)} fichas de matrícula em PDF
+- dados/ - Contém arquivo JSON com todos os dados dos alunos
+
+Para visualizar os dados JSON, abra o arquivo lista_alunos.json em um editor de texto ou navegador web.
+"""
+                            zipf.writestr('README.txt', readme_content)
+                        
+                        zip_buffer.seek(0)
+                        
+                        # Nome do arquivo ZIP
+                        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                        nome_arquivo_zip = f"exportacao_completa_{timestamp}.zip"
+                        
+                        st.download_button(
+                            label="📥 Baixar Exportação Completa",
+                            data=zip_buffer.getvalue(),
+                            file_name=nome_arquivo_zip,
+                            mime="application/zip",
+                            use_container_width=True,
+                            key="download_complete_export"
+                        )
+                        st.success(f"✅ Exportação completa gerada com sucesso! ({len(df_filtrado)} alunos)")
+                    except Exception as e:
+                        st.error(f"❌ Erro ao gerar exportação: {str(e)}")
     
     # Botão para gerar PDF da lista
     st.markdown("---")

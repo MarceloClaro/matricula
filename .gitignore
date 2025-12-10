@@ -43,6 +43,9 @@ Thumbs.db
 # Data (optional - uncomment if you want to ignore CSV data)
 # data/*.csv
 
+# Photos - student photos should not be in version control
+data/fotos/
+
 # Backups
 backups/
 backup_before_restore/
