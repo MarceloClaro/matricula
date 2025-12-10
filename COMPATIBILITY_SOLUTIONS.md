@@ -140,7 +140,37 @@ CMD ["streamlit", "run", "app.py"]
 
 ---
 
-### 2. Pillow Image.ANTIALIAS Depreciado (Informativo)
+### 2. OpenCV Version Conflict (CORRIGIDO) ✅
+
+**Problema Identificado:**
+- `opencv-python-headless==4.8.1.78` especificado em requirements.txt
+- `imgaug` instalava automaticamente `opencv-python==4.11.0.86` (versão diferente)
+- Ter duas versões de OpenCV instaladas pode causar conflitos e comportamentos inesperados
+
+**Solução Aplicada:**
+```bash
+# Ambas as versões agora estão alinhadas em 4.8.1.78
+opencv-python-headless==4.8.1.78
+opencv-python==4.8.1.78  # Pin to same version as headless to avoid conflicts
+```
+
+**Status Atual:** ✅ **CORRIGIDO** - Ambas as versões do OpenCV agora estão sincronizadas
+
+**Benefícios da Correção:**
+- ✅ Elimina conflitos de versão entre opencv-python e opencv-python-headless
+- ✅ Garante comportamento consistente em todas as operações de imagem
+- ✅ Previne erros inesperados durante processamento de imagens
+- ✅ Melhora a estabilidade do sistema de reconhecimento facial
+
+**Para Futuras Atualizações:**
+```bash
+# Sempre mantenha ambas as versões sincronizadas
+pip install opencv-python==X.Y.Z opencv-python-headless==X.Y.Z
+```
+
+---
+
+### 3. Pillow Image.ANTIALIAS Depreciado (Informativo)
 
 **Problema Identificado:**
 - `Image.ANTIALIAS` foi depreciado no Pillow 10.0+
@@ -161,7 +191,7 @@ img.resize((width, height), Image.LANCZOS)
 
 ---
 
-### 3. Pandas 2.x (Informativo)
+### 4. Pandas 2.x (Informativo)
 
 **Problema Identificado:**
 - Pandas 2.1.4 instalado
@@ -182,7 +212,7 @@ df.loc[] ou df.iloc[]
 
 ---
 
-### 4. TensorFlow 2.x (Informativo)
+### 5. TensorFlow 2.x (Informativo)
 
 **Problema Identificado:**
 - TensorFlow 2.17.1 instalado
