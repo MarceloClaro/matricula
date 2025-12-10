@@ -130,7 +130,7 @@ def main():
         print("      - macOS: brew install cmake")
         print("      - Windows: Use Anaconda e instale via 'conda install -c conda-forge dlib'")
         print("   2. Reinstale as dependências Python:")
-        print("      pip install --force-reinstall dlib face-recognition tensorflow imgaug")
+        print("      pip install --force-reinstall -r requirements.txt")
     else:
         print("\n✅ Reconhecimento facial disponível!")
         print("   Funcionalidades habilitadas:")
