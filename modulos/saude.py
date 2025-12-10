@@ -30,6 +30,9 @@ def render_saude(data_manager):
     
     aluno_id = int(aluno_selecionado.split(" - ")[0])
     
+    # Buscar dados do aluno no cadastro geral para auto-preencher campos
+    aluno_cadastro = df_alunos[df_alunos['id'] == aluno_id].iloc[0]
+    
     # Verificar se já existe ficha para este aluno
     df_saude = data_manager.get_data('saude')
     saude_existente = df_saude[df_saude['aluno_id'] == aluno_id]
@@ -38,7 +41,28 @@ def render_saude(data_manager):
         st.info("ℹ️ Este aluno já possui ficha de saúde cadastrada. Você pode editá-la abaixo.")
         saude_atual = saude_existente.iloc[0].to_dict()
     else:
+        # Auto-preencher com dados do cadastro geral se não houver ficha de saúde
         saude_atual = {}
+        
+        # Auto-preencher alergias do cadastro geral
+        if pd.notna(aluno_cadastro.get('alergia')) and aluno_cadastro.get('alergia'):
+            saude_atual['alergias'] = aluno_cadastro['alergia']
+            
+        # Auto-preencher contato de emergência com dados da mãe (prioridade) ou pai
+        if pd.notna(aluno_cadastro.get('nome_mae')) and aluno_cadastro.get('nome_mae'):
+            saude_atual['contato_emergencia'] = aluno_cadastro['nome_mae']
+            saude_atual['parentesco_emergencia'] = 'Mãe'
+            if pd.notna(aluno_cadastro.get('telefone')) and aluno_cadastro.get('telefone'):
+                saude_atual['telefone_emergencia'] = aluno_cadastro['telefone']
+        elif pd.notna(aluno_cadastro.get('nome_pai')) and aluno_cadastro.get('nome_pai'):
+            saude_atual['contato_emergencia'] = aluno_cadastro['nome_pai']
+            saude_atual['parentesco_emergencia'] = 'Pai'
+            if pd.notna(aluno_cadastro.get('telefone')) and aluno_cadastro.get('telefone'):
+                saude_atual['telefone_emergencia'] = aluno_cadastro['telefone']
+        
+        # Exibir aviso de auto-preenchimento
+        if saude_atual:
+            st.success("✨ Alguns campos foram automaticamente preenchidos com informações do cadastro geral. Você pode editá-los se necessário.")
     
     with st.form("form_saude"):
         st.subheader("Tipo Sanguíneo")

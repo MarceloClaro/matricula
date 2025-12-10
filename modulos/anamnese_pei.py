@@ -55,7 +55,25 @@ def render_anamnese_pei(data_manager):
         st.info("ℹ️ Este aluno já possui anamnese pedagógica cadastrada. Você pode editá-la abaixo.")
         anamnese_atual = anamnese_existente.iloc[0].to_dict()
     else:
+        # Auto-preencher com dados do cadastro geral se não houver anamnese
         anamnese_atual = {}
+        
+        # Auto-preencher filiação
+        filiacao_parts = []
+        if pd.notna(aluno_info.get('nome_mae')) and aluno_info.get('nome_mae'):
+            filiacao_parts.append(f"Mãe: {aluno_info['nome_mae']}")
+        if pd.notna(aluno_info.get('nome_pai')) and aluno_info.get('nome_pai'):
+            filiacao_parts.append(f"Pai: {aluno_info['nome_pai']}")
+        if filiacao_parts:
+            anamnese_atual['filiacao'] = '\n'.join(filiacao_parts)
+        
+        # Auto-preencher ano/turma do cadastro
+        if pd.notna(aluno_info.get('ano_escolar')) and aluno_info.get('ano_escolar'):
+            anamnese_atual['turma_serie'] = aluno_info['ano_escolar']
+        
+        # Exibir aviso de auto-preenchimento
+        if anamnese_atual:
+            st.success("✨ Alguns campos foram automaticamente preenchidos com informações do cadastro geral. Você pode editá-los se necessário.")
     
     with st.form("form_anamnese_pei"):
         # Seção 1: Identificação
@@ -71,7 +89,7 @@ def render_anamnese_pei(data_manager):
             
             filiacao = st.text_area(
                 "Filiação *",
-                value=anamnese_atual.get('filiacao', f"Mãe: {aluno_info.get('nome_mae', '')}\nPai: {aluno_info.get('nome_pai', '')}"),
+                value=anamnese_atual.get('filiacao', ''),
                 height=80
             )
         
