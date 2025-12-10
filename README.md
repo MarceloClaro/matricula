@@ -81,10 +81,11 @@ conda install -c conda-forge dlib
 ### Implantação no Streamlit Cloud
 
 Para implantar no Streamlit Cloud, o sistema está configurado com:
-- `requirements.txt`: Contém todas as dependências Python, incluindo dlib e face-recognition
-- `packages.txt`: Contém as dependências do sistema necessárias para compilar dlib
-- O reconhecimento facial funcionará automaticamente se as dependências forem instaladas com sucesso
-- Se houver falha na instalação de dlib, o sistema continuará funcionando sem a funcionalidade de reconhecimento facial
+- `requirements.txt`: Contém apenas as dependências essenciais para garantir compatibilidade no Streamlit Cloud
+- `requirements-optional.txt`: Contém dependências opcionais para reconhecimento facial (dlib, face-recognition, tensorflow)
+- `packages.txt`: Contém as dependências do sistema necessárias para compilar dlib (se você optar por instalar localmente)
+- **O sistema funcionará perfeitamente no Streamlit Cloud sem reconhecimento facial**
+- Para habilitar reconhecimento facial localmente, instale: `pip install -r requirements-optional.txt`
 
 ### Passos para Instalação
 
@@ -98,7 +99,11 @@ cd matricula
 
 3. Instale as dependências Python:
 ```bash
+# Instalação básica (sem reconhecimento facial)
 pip install -r requirements.txt
+
+# Para habilitar reconhecimento facial (após instalar dependências do sistema)
+pip install -r requirements-optional.txt
 ```
 
 4. **(Recomendado) Verifique a compatibilidade das bibliotecas:**
@@ -122,23 +127,22 @@ http://localhost:8501
 
 ### Instalação Alternativa (sem Reconhecimento Facial)
 
-Se você encontrar problemas com a instalação do `dlib` ou não precisar de reconhecimento facial, você pode instalar apenas as dependências básicas:
+Se você não precisar de reconhecimento facial, você pode instalar apenas as dependências básicas:
 
 ```bash
-# Instale apenas as dependências básicas (sem dlib/face-recognition)
-pip install streamlit pandas reportlab pillow plotly opencv-python-headless scikit-learn numpy
+# Instale apenas as dependências básicas
+pip install -r requirements.txt
 ```
 
 O sistema detectará automaticamente que o reconhecimento facial não está disponível e desabilitará essas funcionalidades.
 
-**Nota sobre instalação do dlib:** Se a instalação do `dlib` falhar, você pode:
-1. **Recomendado**: Usar conda-forge (mais confiável):
+**Para habilitar Reconhecimento Facial depois:**
+1. **Recomendado**: Consulte [FACE_RECOGNITION_INSTALLATION.md](FACE_RECOGNITION_INSTALLATION.md) para instruções completas
+2. Instale as dependências do sistema (veja seção "Dependências do Sistema" acima)
+3. Instale as dependências opcionais:
    ```bash
-   conda install -c conda-forge dlib
-   pip install face-recognition tensorflow imgaug
+   pip install -r requirements-optional.txt
    ```
-2. Usar o sistema sem reconhecimento facial (todas as outras funcionalidades continuarão funcionando)
-3. Para Windows, baixar uma versão pré-compilada (verifique a integridade do arquivo)
 
 ### 🔍 Ferramentas de Diagnóstico e Compatibilidade
 

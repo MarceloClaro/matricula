@@ -1,10 +1,21 @@
-# Dependências opcionais para reconhecimento facial
-# NOTA: Estas dependências foram movidas para requirements.txt
-# Este arquivo é mantido apenas para referência e compatibilidade com versões anteriores
+# Optional dependencies for face recognition features
+# These dependencies are heavy and may fail to install on Streamlit Cloud
+# The application will run without these dependencies, but face recognition features will be disabled
 
-# Para habilitar o reconhecimento facial, instale:
-# pip install -r requirements.txt
+# To install face recognition features locally:
+# 1. Install system dependencies (see packages.txt and FACE_RECOGNITION_INSTALLATION.md)
+# 2. Install Python dependencies: pip install -r requirements-optional.txt
 
-# E certifique-se de ter as dependências do sistema instaladas
-# Veja FACE_RECOGNITION_INSTALLATION.md para instruções completas
+# Face Recognition Dependencies
+# Note: These require system packages in packages.txt
+# Pin opencv-python to same version as opencv-python-headless to avoid conflicts
+opencv-python==4.8.1.78
+dlib>=19.24.0,<19.25.0
+face-recognition==1.3.0
 
+# Anti-spoofing (liveness detection) - Optional but recommended
+# Using latest stable TensorFlow 2.x version
+tensorflow>=2.15.0,<2.18.0
+
+# Data augmentation - Optional but recommended
+imgaug==0.4.0

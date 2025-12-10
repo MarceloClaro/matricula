@@ -124,8 +124,8 @@ def main():
         print("   Passos resumidos:")
         print("   1. Instale as dependências do sistema para seu OS")
         print("      (veja detalhes no guia de instalação)")
-        print("   2. Reinstale as dependências Python:")
-        print("      pip install --force-reinstall -r requirements.txt")
+        print("   2. Instale as dependências Python opcionais:")
+        print("      pip install -r requirements-optional.txt")
     else:
         print("\n✅ Reconhecimento facial disponível!")
         print("   Funcionalidades habilitadas:")
