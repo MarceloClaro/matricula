@@ -101,12 +101,21 @@ cd matricula
 pip install -r requirements.txt
 ```
 
-4. Execute a aplicação:
+4. **(Recomendado) Verifique a compatibilidade das bibliotecas:**
+```bash
+# Verificação rápida (30 segundos)
+python health_check.py
+
+# Verificação completa (2 minutos)
+python test_compatibility.py
+```
+
+5. Execute a aplicação:
 ```bash
 streamlit run app.py
 ```
 
-5. Acesse no navegador:
+6. Acesse no navegador:
 ```
 http://localhost:8501
 ```
@@ -129,7 +138,42 @@ O sistema detectará automaticamente que o reconhecimento facial não está disp
    pip install face-recognition tensorflow imgaug
    ```
 2. Usar o sistema sem reconhecimento facial (todas as outras funcionalidades continuarão funcionando)
-3. Para Windows, baixar uma versão pré-compilada (verifique a integridade do arquivo):
+3. Para Windows, baixar uma versão pré-compilada (verifique a integridade do arquivo)
+
+### 🔍 Ferramentas de Diagnóstico e Compatibilidade
+
+O sistema inclui ferramentas automáticas para testar a compatibilidade das bibliotecas:
+
+#### Verificação Rápida (30 segundos)
+```bash
+python health_check.py
+```
+- Verifica se todas as bibliotecas críticas estão funcionando
+- Identifica se o reconhecimento facial está disponível
+- Ideal para verificação rápida após instalação
+
+#### Teste Completo de Compatibilidade (2 minutos)
+```bash
+python test_compatibility.py
+```
+- Teste abrangente de todas as bibliotecas
+- Verifica versões e compatibilidades
+- Detecta recursos depreciados
+- Testa funcionalidades básicas de cada biblioteca
+- Gera relatório detalhado em `compatibility_report.txt`
+
+#### Teste de Importações do Sistema
+```bash
+python test_imports.py
+```
+- Testa se todos os módulos do sistema podem ser importados
+- Verifica disponibilidade de recursos opcionais
+- Identifica problemas de dependências
+
+**Documentação de Compatibilidade:**
+- 📖 [Relatório de Compatibilidade (Português)](COMPATIBILITY_SOLUTIONS.md)
+- 📖 [Compatibility Report (English)](COMPATIBILITY_SOLUTIONS_EN.md)
+- 📊 [Relatório Detalhado](compatibility_report.txt) - Gerado automaticamente
 
 ## 📁 Estrutura do Projeto
 
@@ -138,6 +182,13 @@ matricula/
 ├── app.py                      # Aplicação principal Streamlit
 ├── data_manager.py             # Gerenciador de dados CSV
 ├── requirements.txt            # Dependências do projeto
+├── packages.txt                # Dependências do sistema (para dlib)
+├── test_imports.py             # Teste de importações do sistema
+├── test_compatibility.py       # Teste completo de compatibilidade
+├── health_check.py             # Verificação rápida de saúde
+├── COMPATIBILITY_SOLUTIONS.md  # Guia de compatibilidade (PT)
+├── COMPATIBILITY_SOLUTIONS_EN.md # Compatibility guide (EN)
+├── compatibility_report.txt    # Relatório de compatibilidade gerado
 ├── modulos/                    # Módulos auxiliares
 │   ├── __init__.py
 │   ├── cadastro_geral.py      # Módulo de cadastro geral
