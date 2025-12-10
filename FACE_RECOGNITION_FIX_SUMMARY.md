@@ -43,7 +43,7 @@ dlib==19.24.0              # Downgrade de 19.24.2 para melhor compatibilidade
 face-recognition==1.3.0
 
 # Anti-spoofing (liveness detection) - Optional but recommended
-tensorflow==2.15.0
+tensorflow>=2.15.0,<2.18.0 # Range de versão para permitir atualizações de segurança
 
 # Data augmentation - Optional but recommended
 imgaug==0.4.0
@@ -52,6 +52,7 @@ imgaug==0.4.0
 **Mudanças importantes:**
 - `dlib`: 19.24.2 → 19.24.0 (melhor compatibilidade com CMake 3.31+)
 - `opencv-python` → `opencv-python-headless` (otimizado para ambientes sem GUI)
+- `tensorflow`: Agora usa range de versão (>=2.15.0,<2.18.0) para permitir atualizações de segurança
 
 ### 3. Documentação Abrangente
 

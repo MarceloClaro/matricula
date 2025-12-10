@@ -31,7 +31,8 @@ dlib==19.24.0              # Biblioteca base para detecção e reconhecimento fa
 face-recognition==1.3.0    # API de alto nível para reconhecimento facial
 
 # Anti-spoofing (liveness detection)
-tensorflow==2.15.0         # Para detectar fotos falsas (anti-spoofing)
+tensorflow>=2.15.0,<2.18.0 # Para detectar fotos falsas (anti-spoofing)
+                           # Versão range permite atualizações de segurança
 
 # Data augmentation
 imgaug==0.4.0             # Aumentação de dados para melhor treinamento
