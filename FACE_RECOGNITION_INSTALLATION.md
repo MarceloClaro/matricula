@@ -27,12 +27,13 @@ As bibliotecas de reconhecimento facial foram integradas ao `requirements.txt` p
 
 ```python
 # Face Recognition Dependencies
-dlib==19.24.0              # Biblioteca base para detecção e reconhecimento facial
+dlib>=19.24.0,<19.25.0     # Biblioteca base para detecção e reconhecimento facial
+                           # Range permite patches importantes mantendo compatibilidade
 face-recognition==1.3.0    # API de alto nível para reconhecimento facial
 
 # Anti-spoofing (liveness detection)
 tensorflow>=2.15.0,<2.18.0 # Para detectar fotos falsas (anti-spoofing)
-                           # Versão range permite atualizações de segurança
+                           # Range permite atualizações de segurança
 
 # Data augmentation
 imgaug==0.4.0             # Aumentação de dados para melhor treinamento

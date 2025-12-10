@@ -39,7 +39,7 @@ Movidas as bibliotecas de reconhecimento facial de `requirements-optional.txt` p
 ```python
 # Face Recognition Dependencies
 # Note: These require system packages in packages.txt
-dlib==19.24.0              # Downgrade de 19.24.2 para melhor compatibilidade
+dlib>=19.24.0,<19.25.0     # Range 19.24.x para patches mantendo compatibilidade
 face-recognition==1.3.0
 
 # Anti-spoofing (liveness detection) - Optional but recommended
@@ -50,9 +50,9 @@ imgaug==0.4.0
 ```
 
 **Mudanças importantes:**
-- `dlib`: 19.24.2 → 19.24.0 (melhor compatibilidade com CMake 3.31+)
+- `dlib`: 19.24.2 → >=19.24.0,<19.25.0 (permite patches com compatibilidade CMake 3.31+)
 - `opencv-python` → `opencv-python-headless` (otimizado para ambientes sem GUI)
-- `tensorflow`: Agora usa range de versão (>=2.15.0,<2.18.0) para permitir atualizações de segurança
+- `tensorflow`: Range (>=2.15.0,<2.18.0) para atualizações de segurança
 
 ### 3. Documentação Abrangente
 
