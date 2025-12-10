@@ -120,7 +120,7 @@ def main():
         print("   Para habilitar, certifique-se de ter as dependências do sistema instaladas:")
         print("   - Ubuntu/Debian: sudo apt-get install build-essential cmake libopenblas-dev liblapack-dev libx11-dev libgtk-3-dev")
         print("   - macOS: brew install cmake")
-        print("   Em seguida, execute: pip install -r requirements.txt")
+        print("   Em seguida, tente reinstalar: pip install --force-reinstall dlib face-recognition")
     else:
         print("\n✅ Reconhecimento facial disponível!")
     
