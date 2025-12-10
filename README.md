@@ -78,16 +78,18 @@ git clone https://github.com/MarceloClaro/matricula.git
 cd matricula
 ```
 
-2. Instale as dependências:
+2. Instale as dependências básicas:
 ```bash
 pip install -r requirements.txt
 ```
 
-**Nota:** Em alguns sistemas, pode ser necessário instalar o dlib manualmente:
+3. (Opcional) Instale as dependências para reconhecimento facial:
 ```bash
-pip install cmake
-pip install dlib
+# Apenas se você tiver CMake e build tools instalados
+pip install -r requirements-optional.txt
 ```
+
+**Nota:** Se a instalação das dependências opcionais (dlib, face-recognition) falhar, o sistema funcionará normalmente sem a funcionalidade de reconhecimento facial. As demais funcionalidades (cadastro, dashboard, PDFs, etc.) continuarão disponíveis.
 
 Se a instalação do `dlib` falhar (comum em ambientes Windows ou sistemas sem compilador C++), você pode:
 1. Usar o sistema sem reconhecimento facial (outras funcionalidades continuarão funcionando)
@@ -95,10 +97,10 @@ Se a instalação do `dlib` falhar (comum em ambientes Windows ou sistemas sem c
    ```bash
    # Windows: baixar wheel do dlib de https://github.com/z-mahmud22/Dlib_Windows_Python3.x
    pip install dlib-19.24.2-cp310-cp310-win_amd64.whl  # ajuste para sua versão do Python
+   pip install face-recognition
    ```
-3. Remover as linhas `face-recognition==1.3.0` e `dlib==19.24.2` do `requirements.txt` se não precisar dessa funcionalidade
 
-3. Execute a aplicação:
+4. Execute a aplicação:
 ```bash
 streamlit run app.py
 ```
