@@ -24,14 +24,22 @@ try:
 except ImportError:
     IMGAUG_AVAILABLE = False
 
+# TensorFlow and scikit-learn for anti-spoofing
+TENSORFLOW_AVAILABLE = False
+SKLEARN_AVAILABLE = False
 try:
     from sklearn.model_selection import train_test_split
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    pass
+
+try:
     from tensorflow import keras
     from tensorflow.keras import layers, callbacks
     from tensorflow.keras.models import Sequential, load_model
     TENSORFLOW_AVAILABLE = True
 except ImportError:
-    TENSORFLOW_AVAILABLE = False
+    pass
 
 # Import streamlit after optional imports to avoid import-time warnings
 import streamlit as st
@@ -330,8 +338,8 @@ class FaceRecognitionSystem:
         Returns:
             bool: True se treinamento foi bem sucedido
         """
-        if not TENSORFLOW_AVAILABLE:
-            st.warning("TensorFlow não está disponível. Anti-spoofing desabilitado.")
+        if not TENSORFLOW_AVAILABLE or not SKLEARN_AVAILABLE:
+            st.warning("TensorFlow ou scikit-learn não está disponível. Anti-spoofing desabilitado.")
             return False
         
         if fake_images is None or len(fake_images) == 0:
