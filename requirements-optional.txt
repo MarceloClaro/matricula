@@ -3,10 +3,10 @@
 
 # Reconhecimento facial
 dlib
-face-recognition==1.3.0
+face-recognition
 
 # Anti-spoofing (liveness detection)
-tensorflow==2.15.0
+tensorflow
 
 # Data augmentation
 imgaug
