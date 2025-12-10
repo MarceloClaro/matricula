@@ -30,6 +30,9 @@ def render_socioeconomico(data_manager):
     
     aluno_id = int(aluno_selecionado.split(" - ")[0])
     
+    # Buscar dados do aluno no cadastro geral para auto-preencher campos
+    aluno_cadastro = df_alunos[df_alunos['id'] == aluno_id].iloc[0]
+    
     # Verificar se já existe cadastro para este aluno
     df_socio = data_manager.get_data('socioeconomico')
     socio_existente = df_socio[df_socio['aluno_id'] == aluno_id]
@@ -38,7 +41,30 @@ def render_socioeconomico(data_manager):
         st.info("ℹ️ Este aluno já possui questionário socioeconômico cadastrado. Você pode editá-lo abaixo.")
         socio_atual = socio_existente.iloc[0].to_dict()
     else:
+        # Auto-preencher com dados do cadastro geral se não houver questionário
         socio_atual = {}
+        
+        # Auto-preencher profissão da mãe como responsável
+        if pd.notna(aluno_cadastro.get('profissao_mae')) and aluno_cadastro.get('profissao_mae'):
+            socio_atual['profissao_responsavel'] = aluno_cadastro['profissao_mae']
+        # Se não houver profissão da mãe, usar do pai
+        elif pd.notna(aluno_cadastro.get('profissao_pai')) and aluno_cadastro.get('profissao_pai'):
+            socio_atual['profissao_responsavel'] = aluno_cadastro['profissao_pai']
+        
+        # Auto-preencher transporte escolar
+        if pd.notna(aluno_cadastro.get('utiliza_transporte')) and aluno_cadastro.get('utiliza_transporte') == 'Sim':
+            # Determinar tipo de transporte baseado no poder responsável
+            poder_transporte = aluno_cadastro.get('poder_responsavel_transporte', '')
+            if poder_transporte == 'Municipal':
+                socio_atual['transporte_escolar'] = 'Sim - Municipal'
+            elif poder_transporte == 'Estadual':
+                socio_atual['transporte_escolar'] = 'Sim - Público'
+            else:
+                socio_atual['transporte_escolar'] = 'Sim - Particular'
+        
+        # Exibir aviso de auto-preenchimento
+        if socio_atual:
+            st.success("✨ Alguns campos foram automaticamente preenchidos com informações do cadastro geral. Você pode editá-los se necessário.")
     
     with st.form("form_socioeconomico"):
         st.subheader("Renda Familiar")

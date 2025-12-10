@@ -30,6 +30,9 @@ def render_questionario_saeb(data_manager):
     
     aluno_id = int(aluno_selecionado.split(" - ")[0])
     
+    # Buscar dados do aluno no cadastro geral para auto-preencher campos
+    aluno_cadastro = df_alunos[df_alunos['id'] == aluno_id].iloc[0]
+    
     # Verificar se já existe cadastro para este aluno
     df_saeb = data_manager.get_data('questionario_saeb')
     saeb_existente = df_saeb[df_saeb['aluno_id'] == aluno_id]
@@ -38,7 +41,30 @@ def render_questionario_saeb(data_manager):
         st.info("ℹ️ Este aluno já possui questionário SAEB cadastrado. Você pode editá-lo abaixo.")
         saeb_atual = saeb_existente.iloc[0].to_dict()
     else:
+        # Auto-preencher com dados do cadastro geral se não houver questionário
         saeb_atual = {}
+        
+        # Auto-preencher sexo
+        if pd.notna(aluno_cadastro.get('sexo')) and aluno_cadastro.get('sexo'):
+            saeb_atual['sexo'] = aluno_cadastro['sexo']
+        
+        # Auto-preencher cor/raça
+        if pd.notna(aluno_cadastro.get('cor_raca')) and aluno_cadastro.get('cor_raca'):
+            saeb_atual['cor_raca'] = aluno_cadastro['cor_raca']
+        
+        # Auto-preencher deficiência
+        if pd.notna(aluno_cadastro.get('aluno_deficiencia')) and aluno_cadastro.get('aluno_deficiencia'):
+            saeb_atual['deficiencia'] = aluno_cadastro['aluno_deficiencia']
+            
+            # Verificar se é TEA baseado no tipo de deficiência ou CID
+            tipo_def = str(aluno_cadastro.get('tipo_deficiencia', '')).lower()
+            cid = str(aluno_cadastro.get('cid_10_dsm5', '')).lower()
+            if 'autista' in tipo_def or 'tea' in tipo_def or 'f84' in cid:
+                saeb_atual['tea'] = 'Sim'
+        
+        # Exibir aviso de auto-preenchimento
+        if saeb_atual:
+            st.success("✨ Alguns campos foram automaticamente preenchidos com informações do cadastro geral. Você pode editá-los se necessário.")
     
     with st.form("form_questionario_saeb"):
         # Seção 2: Informações Pessoais
