@@ -166,8 +166,9 @@ def gerar_pdf_aluno(data_manager, aluno_id, incluir_pei=True, incluir_anamnese=T
                 ]))
                 elements.append(foto_table)
                 elements.append(Spacer(1, 0.3*cm))
-            except Exception as e:
-                # Se houver erro ao carregar foto, continua sem ela
+            except (IOError, OSError) as e:
+                # Se houver erro ao carregar foto (arquivo não encontrado, corrupto, etc), continua sem ela
+                # Isso permite que o PDF seja gerado mesmo se a foto estiver faltando
                 pass
         
         elements.append(Paragraph("DADOS PESSOAIS", heading_style))

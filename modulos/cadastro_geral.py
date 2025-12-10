@@ -683,8 +683,6 @@ def render_lista_alunos(data_manager):
     with col1:
         if st.button("📥 Exportar JSON", use_container_width=True, key="btn_export_json"):
             try:
-                import json
-                
                 # Preparar dados para JSON
                 json_data = df_filtrado.to_dict(orient='records')
                 
@@ -714,7 +712,6 @@ def render_lista_alunos(data_manager):
             else:
                 with st.spinner(f"Gerando {len(df_filtrado)} PDFs..."):
                     try:
-                        import zipfile
                         from . import pdf_generator
                         
                         # Criar ZIP em memória
@@ -768,8 +765,6 @@ def render_lista_alunos(data_manager):
             else:
                 with st.spinner(f"Gerando exportação completa..."):
                     try:
-                        import zipfile
-                        import json
                         from . import pdf_generator
                         
                         # Criar ZIP em memória
@@ -806,7 +801,7 @@ def render_lista_alunos(data_manager):
                             
                             # Adicionar README
                             readme_content = f"""EXPORTAÇÃO DE DADOS - LISTA DE ALUNOS
-                            
+
 Data de Exportação: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
 Total de Alunos: {len(df_filtrado)}
 
