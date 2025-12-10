@@ -81,11 +81,11 @@ conda install -c conda-forge dlib
 ### Implantação no Streamlit Cloud
 
 Para implantar no Streamlit Cloud, o sistema está configurado com:
-- `requirements.txt`: Contém apenas as dependências essenciais para garantir compatibilidade no Streamlit Cloud
-- `requirements-optional.txt`: Contém dependências opcionais para reconhecimento facial (dlib, face-recognition, tensorflow)
-- `packages.txt`: Contém as dependências do sistema necessárias para compilar dlib (se você optar por instalar localmente)
-- **O sistema funcionará perfeitamente no Streamlit Cloud sem reconhecimento facial**
-- Para habilitar reconhecimento facial localmente, instale: `pip install -r requirements-optional.txt`
+- `requirements.txt`: Contém todas as dependências necessárias incluindo reconhecimento facial (dlib, face-recognition)
+- `requirements-optional.txt`: Contém dependências avançadas opcionais (tensorflow para anti-spoofing, imgaug para data augmentation)
+- `packages.txt`: Contém as dependências do sistema necessárias para compilar dlib
+- **O sistema incluirá reconhecimento facial por padrão no Streamlit Cloud**
+- Para habilitar recursos avançados (anti-spoofing), instale: `pip install -r requirements-optional.txt`
 
 ### Passos para Instalação
 
@@ -99,10 +99,10 @@ cd matricula
 
 3. Instale as dependências Python:
 ```bash
-# Instalação básica (sem reconhecimento facial)
+# Instalação completa com reconhecimento facial
 pip install -r requirements.txt
 
-# Para habilitar reconhecimento facial (após instalar dependências do sistema)
+# (Opcional) Para habilitar recursos avançados (anti-spoofing e data augmentation)
 pip install -r requirements-optional.txt
 ```
 
@@ -125,24 +125,25 @@ streamlit run app.py
 http://localhost:8501
 ```
 
-### Instalação Alternativa (sem Reconhecimento Facial)
+### Recursos Avançados Opcionais
 
-Se você não precisar de reconhecimento facial, você pode instalar apenas as dependências básicas:
+Para habilitar recursos avançados de reconhecimento facial (anti-spoofing e data augmentation):
 
-```bash
-# Instale apenas as dependências básicas
-pip install -r requirements.txt
-```
+1. Instale as dependências principais:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-O sistema detectará automaticamente que o reconhecimento facial não está disponível e desabilitará essas funcionalidades.
-
-**Para habilitar Reconhecimento Facial depois:**
-1. **Recomendado**: Consulte [FACE_RECOGNITION_INSTALLATION.md](FACE_RECOGNITION_INSTALLATION.md) para instruções completas
-2. Instale as dependências do sistema (veja seção "Dependências do Sistema" acima)
-3. Instale as dependências opcionais:
+2. Instale as dependências avançadas opcionais:
    ```bash
    pip install -r requirements-optional.txt
    ```
+
+**Nota:** O reconhecimento facial básico já está incluído em `requirements.txt`. As dependências opcionais incluem:
+- **TensorFlow**: Para detecção de liveness (anti-spoofing) - impede fraudes com fotos
+- **imgaug**: Para data augmentation - melhora a precisão do treinamento
+
+Para mais detalhes sobre instalação e troubleshooting, consulte [FACE_RECOGNITION_INSTALLATION.md](FACE_RECOGNITION_INSTALLATION.md)
 
 ### 🔍 Ferramentas de Diagnóstico e Compatibilidade
 

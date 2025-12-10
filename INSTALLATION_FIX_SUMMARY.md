@@ -25,7 +25,7 @@ Added `packages.txt` for Streamlit Cloud deployment with the following system pa
 
 This allows Streamlit Cloud to install the necessary system dependencies before attempting to build dlib.
 
-### 2. Made Face Recognition Optional
+### 2. Made Advanced Features Optional (Updated 2025-12-10)
 
 Modified `modulos/reconhecimento_facial.py` to gracefully handle missing libraries:
 
@@ -44,25 +44,25 @@ Modified `modulos/reconhecimento_facial.py` to gracefully handle missing librari
 - Modified `modulos/frequencia_aula.py` to check availability before showing UI
 - Display helpful error messages with installation instructions when libraries are missing
 
-### 3. Split Requirements
+### 3. Requirements Structure (Updated 2025-12-10)
 
 **Main Requirements (`requirements.txt`):**
-Contains only the core dependencies that install reliably:
+Contains core dependencies AND face recognition libraries:
 - streamlit
 - pandas
 - reportlab
 - pillow
 - plotly
-- opencv-python
+- opencv-python-headless
 - scikit-learn
 - numpy
+- **dlib** (for face recognition)
+- **face-recognition** (for face recognition)
 
 **Optional Requirements (`requirements-optional.txt`):**
-Contains the face recognition dependencies:
-- dlib
-- face-recognition
-- tensorflow
-- imgaug
+Contains advanced face recognition features only:
+- tensorflow (for anti-spoofing/liveness detection)
+- imgaug (for data augmentation)
 
 ### 4. Updated Documentation
 
@@ -85,11 +85,12 @@ Contains the face recognition dependencies:
 ❌ Application cannot start
 ❌ All features are unavailable
 
-### After Changes:
-✅ Installation succeeds even if dlib fails to build
-✅ Application starts and all non-face-recognition features work
-✅ Clear error messages guide users when face recognition is unavailable
-✅ Users can optionally install face recognition later
+### After Changes (Updated 2025-12-10):
+✅ Face recognition libraries (dlib, face-recognition) included in main requirements.txt
+✅ System dependencies (packages.txt) ensure dlib can compile on Streamlit Cloud
+✅ Application works with face recognition by default
+✅ Advanced features (anti-spoofing, data augmentation) remain optional
+✅ Clear error messages guide users if installation fails
 
 ## Testing
 
@@ -100,23 +101,28 @@ python test_imports.py
 
 ## Deployment
 
-### Local Development:
+### Local Development (Updated 2025-12-10):
 ```bash
-# Install core dependencies
+# Install system dependencies first (Ubuntu/Debian)
+sudo apt-get update
+sudo apt-get install build-essential cmake libopenblas-dev liblapack-dev
+
+# Install all dependencies including face recognition
 pip install -r requirements.txt
 
-# Optionally install face recognition (if you have build tools)
+# Optionally install advanced features (anti-spoofing, data augmentation)
 pip install -r requirements-optional.txt
 ```
 
 ### Streamlit Cloud:
-- The `packages.txt` file will automatically install system dependencies
-- If dlib installation still fails, the app will work without face recognition
+- The `packages.txt` file automatically installs system dependencies
+- Face recognition (dlib, face-recognition) installs automatically from requirements.txt
+- Advanced features (tensorflow, imgaug) remain optional to reduce deployment size
 - No manual intervention required
 
 ## Features Affected
 
-### Available Without Face Recognition:
+### Available by Default (Updated 2025-12-10):
 ✅ Cadastro Geral (Student Registration)
 ✅ PEI (Individual Education Plan)
 ✅ Socioeconômico (Socioeconomic Data)
@@ -128,10 +134,12 @@ pip install -r requirements-optional.txt
 ✅ PDF Generation
 ✅ Export (ZIP, JSON)
 ✅ Backup and Restore
+✅ **Registro de Presença (Face Registration)** - Now included by default
+✅ **Frequência de Aula (Attendance via Face Recognition)** - Now included by default
 
-### Requires Optional Dependencies:
-⚠️ Registro de Presença (Face Registration)
-⚠️ Frequência de Aula (Attendance via Face Recognition)
+### Advanced Features (Requires Optional Dependencies):
+⚠️ Anti-spoofing / Liveness Detection (requires tensorflow)
+⚠️ Data Augmentation for better training (requires imgaug)
 
 ## Security
 

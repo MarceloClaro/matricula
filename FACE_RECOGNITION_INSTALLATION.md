@@ -21,25 +21,32 @@ libatlas-base-dev   # Biblioteca ATLAS para operações matemáticas
 gfortran            # Compilador Fortran (necessário para algumas bibliotecas)
 ```
 
-### 2. Dependências Python (`requirements.txt`)
+### 2. Dependências Python
 
 As bibliotecas de reconhecimento facial foram integradas ao `requirements.txt` principal:
 
 ```python
-# Face Recognition Dependencies
+# Face Recognition Dependencies (em requirements.txt)
 dlib>=19.24.0,<19.25.0     # Biblioteca base para detecção e reconhecimento facial
                            # Range permite patches importantes mantendo compatibilidade
 face-recognition==1.3.0    # API de alto nível para reconhecimento facial
+```
 
-# Anti-spoofing (liveness detection)
+**Dependências avançadas opcionais** (em `requirements-optional.txt`):
+
+```python
+# Anti-spoofing (liveness detection) - Opcional
 tensorflow>=2.15.0,<2.18.0 # Para detectar fotos falsas (anti-spoofing)
                            # Range permite atualizações de segurança
 
-# Data augmentation
+# Data augmentation - Opcional
 imgaug==0.4.0             # Aumentação de dados para melhor treinamento
 ```
 
-**Nota:** Foi utilizado `opencv-python-headless` em vez de `opencv-python` para compatibilidade com ambientes sem GUI (como Streamlit Cloud).
+**Notas:** 
+- Foi utilizado `opencv-python-headless` em vez de `opencv-python` para compatibilidade com ambientes sem GUI (como Streamlit Cloud)
+- O reconhecimento facial básico funciona sem as dependências opcionais
+- As dependências opcionais melhoram a segurança (anti-spoofing) e precisão (data augmentation)
 
 ## Instalação
 
@@ -158,21 +165,21 @@ streamlit run app.py
 
 ### Sistema funciona mas reconhecimento facial não está disponível
 
-**Causa:** A instalação do dlib/face-recognition falhou, mas o sistema continua funcionando.
-
-**Comportamento esperado:** O sistema foi projetado para funcionar mesmo sem reconhecimento facial.
+**Causa:** A instalação do dlib/face-recognition falhou durante a instalação do requirements.txt.
 
 **Verificação:**
 ```python
 python test_imports.py
 ```
 
-**Para habilitar o reconhecimento facial:**
-1. Instale as dependências do sistema
-2. Reinstale o dlib:
+**Para resolver:**
+1. Certifique-se de que as dependências do sistema estão instaladas (veja seção acima)
+2. Reinstale o dlib e face-recognition:
    ```bash
    pip install --force-reinstall dlib face-recognition
    ```
+
+**Nota:** O reconhecimento facial está incluído por padrão em `requirements.txt` desde a versão mais recente.
 
 ## Arquitetura da Solução
 
@@ -201,7 +208,7 @@ class FaceRecognitionSystem:
 
 ### Funcionalidades Disponíveis
 
-#### ✅ Sem Reconhecimento Facial
+#### ✅ Funcionalidades Básicas (Sempre Disponíveis)
 - Cadastro Geral de Alunos
 - PEI (Plano Educacional Individualizado)
 - Dados Socioeconômicos
@@ -213,11 +220,14 @@ class FaceRecognitionSystem:
 - Exportação de dados
 - Backup e restauração
 
-#### 🔐 Com Reconhecimento Facial
-- Todas as funcionalidades acima +
+#### 🔐 Reconhecimento Facial (Incluído por Padrão em requirements.txt)
 - Registro de Presença (cadastro facial)
 - Frequência de Aula (marcação automática de presença)
-- Anti-spoofing (detecção de fotos falsas)
+- Detecção e reconhecimento facial básico
+
+#### 🛡️ Recursos Avançados (Requer requirements-optional.txt)
+- Anti-spoofing (detecção de liveness) - Requer TensorFlow
+- Data augmentation para melhor treinamento - Requer imgaug
 
 ## Referências
 
