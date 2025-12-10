@@ -145,11 +145,15 @@ streamlit run app.py
 
 ### Erro: "CMake Error: Compatibility with CMake < 3.5 has been removed"
 
-**Causa:** Versão do CMake muito recente (3.31+) incompatível com dlib 19.24.2.
+**Causa:** Versão do CMake muito recente (3.31+) pode ser incompatível com algumas versões do dlib.
 
-**Solução:** 
-- Foi utilizado dlib 19.24.0 em vez de 19.24.2 para melhor compatibilidade
-- Se o problema persistir, use conda-forge
+**Solução implementada:** 
+- Este projeto usa dlib 19.24.0, que tem melhor compatibilidade com CMake moderno
+- Se você ainda encontrar problemas, use conda-forge (recomendado para Windows):
+  ```bash
+  conda install -c conda-forge dlib
+  ```
+
 
 ### Sistema funciona mas reconhecimento facial não está disponível
 
