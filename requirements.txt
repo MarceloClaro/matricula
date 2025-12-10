@@ -1,22 +1,14 @@
+# Core dependencies required for basic functionality
 streamlit==1.29.0
 pandas==2.1.4
 reportlab==4.0.7
 pillow==10.3.0
 plotly==5.18.0
 opencv-python-headless==4.8.1.78
-# Pin opencv-python to same version to avoid conflicts with opencv-python-headless
-opencv-python==4.8.1.78
 scikit-learn==1.3.2
 numpy>=1.24.3,<2.0
 
-# Face Recognition Dependencies
-# Note: These require system packages in packages.txt
-dlib>=19.24.0,<19.25.0
-face-recognition==1.3.0
-
-# Anti-spoofing (liveness detection) - Optional but recommended
-# Using latest stable TensorFlow 2.x version
-tensorflow>=2.15.0,<2.18.0
-
-# Data augmentation - Optional but recommended
-imgaug==0.4.0
+# Optional dependencies for face recognition features
+# To enable face recognition, install: pip install -r requirements-optional.txt
+# The application will run without these dependencies, but face recognition features will be disabled
+# See FACE_RECOGNITION_INSTALLATION.md for complete installation instructions
