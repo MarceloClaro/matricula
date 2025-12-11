@@ -2,7 +2,7 @@
 
 ## Resumo Executivo
 
-Sistema integrado de gerenciamento de matrículas escolares baseado em arquitetura web moderna, desenvolvido com framework Streamlit e persistência em formato CSV. O sistema implementa funcionalidades avançadas de reconhecimento facial utilizando redes neurais convolucionais (CNN) e algoritmos de aprendizado profundo para autenticação biométrica e controle de presença automatizado.
+Sistema integrado de gerenciamento de matrículas escolares baseado em arquitetura web moderna, desenvolvido com framework Streamlit e persistência em formato CSV. O sistema implementa funcionalidades avançadas de reconhecimento facial utilizando rede neural convolucional (CNN) e algoritmos de aprendizado profundo para autenticação biométrica e controle de presença automatizado.
 
 **Palavras-chave**: Gestão Escolar, Reconhecimento Facial, Biometria, Anti-Spoofing, Sistema de Informação Educacional, Plano Educacional Individualizado (PEI)
 
@@ -169,6 +169,12 @@ Encoding (128-D) → Distance Metrics → Classification → Liveness Detection 
 ```
 Q = 0.35·Qₛₕₐᵣₚₙₑₛₛ + 0.25·Qᵦᵣᵢgₕₜₙₑₛₛ + 0.40·Qₛᵢzₑ
 ```
+
+Onde:
+- Q = score de qualidade geral (0-1)
+- Qₛₕₐᵣₚₙₑₛₛ = qualidade de nitidez normalizada
+- Qᵦᵣᵢgₕₜₙₑₛₛ = qualidade de brilho normalizada
+- Qₛᵢzₑ = qualidade de tamanho da face normalizada
 
 **Captura de Sequência**:
 - **N amostras**: 30 frames
@@ -755,13 +761,13 @@ pip install streamlit
 
 | Característica | Este Sistema | Sistema A* | Sistema B** | Sistema C*** |
 |----------------|--------------|-----------|-------------|--------------|
-| Reconhecimento facial | ✅ Sim | ❌ Não | ✅ Sim | ✅ Sim |
-| Anti-spoofing | ✅ CNN | ❌ Não | ⚠️ Básico | ✅ Avançado |
-| Custo | Gratuito (MIT) | R$ 500/mês | R$ 1.200/mês | R$ 3.000/mês |
-| On-premise | ✅ Sim | ❌ Não | ⚠️ Opcional | ✅ Sim |
-| LGPD compliant | ✅ Sim | ⚠️ Parcial | ✅ Sim | ✅ Sim |
-| Suporte SAEB | ✅ Sim | ❌ Não | ❌ Não | ⚠️ Parcial |
-| Customizável | ✅ Open source | ❌ Não | ⚠️ Limitado | ⚠️ Limitado |
+| Reconhecimento facial | ✅ Yes | ❌ No | ✅ Yes | ✅ Yes |
+| Anti-spoofing | ✅ CNN | ❌ No | ⚠️ Basic | ✅ Advanced |
+| Custo | Free (MIT) | R$ 500/mês | R$ 1.200/mês | R$ 3.000/mês |
+| On-premise | ✅ Yes | ❌ No | ⚠️ Optional | ✅ Yes |
+| LGPD compliant | ✅ Yes | ⚠️ Partial | ✅ Yes | ✅ Yes |
+| Suporte SAEB | ✅ Yes | ❌ No | ❌ No | ⚠️ Partial |
+| Customizável | ✅ Open source | ❌ No | ⚠️ Limited | ⚠️ Limited |
 
 *Sistema A: Solução de mercado básica  
 **Sistema B: Plataforma intermediária  
