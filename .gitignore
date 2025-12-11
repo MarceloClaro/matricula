@@ -53,3 +53,6 @@ backup_before_restore/
 # Temp files
 *.tmp
 *.log
+
+# Prevent accidental pip install artifacts
+=*
