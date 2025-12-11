@@ -1,20 +1,28 @@
 # Core dependencies required for basic functionality
+# These are essential and must be installed first for Streamlit Cloud deployment
 streamlit==1.29.0
 pandas==2.1.4
+numpy==1.26.4
+plotly==5.18.0
 reportlab==4.0.7
 pillow==10.3.0
-plotly==5.18.0
 opencv-python-headless==4.8.1.78
 scikit-learn==1.3.2
-numpy>=1.24.3,<2.0
 
-# Face Recognition Dependencies
-# Note: These require system packages listed in packages.txt
-# For Streamlit Cloud, the system packages will be automatically installed
-dlib>=19.24.0
-face-recognition==1.3.0
+# Face Recognition Dependencies have been moved to requirements-face.txt
+# to prevent deployment issues on Streamlit Cloud.
+# The core application works without face recognition features.
+# To enable face recognition locally:
+#   1. Install system dependencies from packages.txt
+#   2. Run: pip install -r requirements-face.txt
+# 
+# For Streamlit Cloud deployment with face recognition:
+#   - Temporarily uncomment the lines below before deployment
+#   - Note: dlib compilation may take 5-10 minutes on Streamlit Cloud
+# 
+# dlib>=19.24.0
+# face-recognition==1.3.0
 
 # Optional advanced features for face recognition (anti-spoofing, data augmentation)
 # To enable these features, install: pip install -r requirements-optional.txt
-# The application will work without these dependencies
 # See FACE_RECOGNITION_INSTALLATION.md for complete installation instructions
