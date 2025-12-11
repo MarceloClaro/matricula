@@ -477,22 +477,30 @@ Configuração para deploy via [Streamlit Cloud](https://streamlit.io/cloud):
 
 **Arquivos de Configuração**:
 1. **`requirements.txt`**: Dependências Python essenciais
-   - Inclui reconhecimento facial (dlib, face-recognition)
+   - Inclui todas as bibliotecas core: streamlit, pandas, plotly, etc.
+   - **Não inclui** reconhecimento facial por padrão (evita timeout de compilação)
    - Tamanho: ~200 MB após instalação
+   - Tempo de instalação: 2-3 minutos
    
-2. **`requirements-optional.txt`**: Dependências avançadas
+2. **`requirements-face.txt`**: Reconhecimento facial (opcional)
+   - dlib e face-recognition (requer compilação ~5-10 min)
+   - Para habilitar no Streamlit Cloud: descomentar linhas em requirements.txt
+   - Ver PLOTLY_FIX_2025-12-11.md para detalhes
+   
+3. **`requirements-optional.txt`**: Dependências avançadas
    - TensorFlow/Keras para anti-spoofing
    - imgaug para data augmentation
    - Opcional: instalar com `pip install -r requirements-optional.txt`
    
-3. **`packages.txt`**: Dependências do sistema Ubuntu
+4. **`packages.txt`**: Dependências do sistema Ubuntu
    - Instaladas automaticamente no container Streamlit Cloud
 
 **Limitações do Streamlit Cloud**:
 - RAM: 1 GB (pode ser insuficiente para TensorFlow)
 - CPU: Compartilhada, sem GPU
 - Armazenamento: Efêmero (dados perdidos em restart)
-- **Recomendação**: Usar apenas para demonstração; produção requer VPS
+- **Recomendação**: Deploy básico funciona perfeitamente; reconhecimento facial opcional
+- **Nova estrutura**: Core features instalam rapidamente sem problemas
 
 #### 5.4.2 Deploy em VPS/Servidor Dedicado
 
@@ -555,26 +563,30 @@ Referir-se à seção 5.3 para instruções específicas do SO.
 # Atualizar pip
 pip install --upgrade pip
 
-# Instalação básica (sem reconhecimento facial)
-pip install streamlit pandas reportlab plotly pillow
-
-# Instalação completa (com reconhecimento facial)
+# Instalação básica (core features - RECOMENDADO)
 pip install -r requirements.txt
+
+# Instalação com reconhecimento facial (opcional)
+pip install -r requirements.txt
+pip install -r requirements-face.txt
 
 # Instalação avançada (com anti-spoofing)
 pip install -r requirements.txt
+pip install -r requirements-face.txt
 pip install -r requirements-optional.txt
 ```
 
 **Tempo estimado de instalação**:
-- Básica: 2-3 minutos
-- Completa: 5-10 minutos (compilação do dlib)
+- Básica (core): 2-3 minutos ⚡
+- Com reconhecimento facial: 7-12 minutos (compilação do dlib)
 - Avançada: 15-20 minutos (TensorFlow)
 
 **Espaço em disco requerido**:
-- Básico: ~200 MB
-- Completo: ~500 MB
+- Básico (core): ~200 MB
+- Com reconhecimento facial: ~500 MB
 - Avançado: ~1.5 GB (com TensorFlow)
+
+> 📝 **Nota importante**: A partir de dezembro de 2025, as dependências foram reorganizadas para melhorar a confiabilidade do deploy no Streamlit Cloud. O reconhecimento facial é agora opcional. Ver [PLOTLY_FIX_2025-12-11.md](PLOTLY_FIX_2025-12-11.md) para detalhes.
 
 #### Passo 5: Validação da Instalação
 
