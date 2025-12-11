@@ -563,14 +563,17 @@ Referir-se à seção 5.3 para instruções específicas do SO.
 # Atualizar pip
 pip install --upgrade pip
 
-# Instalação básica (core features - RECOMENDADO)
+# Opção 1: Instalação básica (core features - RECOMENDADO)
+# Instala todas as funcionalidades essenciais exceto reconhecimento facial
 pip install -r requirements.txt
 
-# Instalação com reconhecimento facial (opcional)
+# Opção 2: Instalação com reconhecimento facial
+# Primeiro instala core, depois adiciona face recognition
 pip install -r requirements.txt
 pip install -r requirements-face.txt
 
-# Instalação avançada (com anti-spoofing)
+# Opção 3: Instalação avançada (com anti-spoofing)
+# Core + face recognition + recursos avançados
 pip install -r requirements.txt
 pip install -r requirements-face.txt
 pip install -r requirements-optional.txt
