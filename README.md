@@ -15,23 +15,43 @@ Sistema completo de gerenciamento de matrículas escolares desenvolvido em Strea
 - **Saúde**: Ficha de saúde com dados médicos e contato de emergência
 
 ### 🆕 Reconhecimento Facial e Controle de Presença
-- **Registro de Presença**: 
-  - Captura automática de 30 fotos em 10 segundos via webcam
+> 📖 **Novidades (Dez 2025)**: Sistema completamente renovado com técnicas avançadas! Veja [MELHORIAS_RECONHECIMENTO_FACIAL.md](MELHORIAS_RECONHECIMENTO_FACIAL.md)
+
+- **Registro de Presença com Captura Inteligente**: 
+  - ✨ **NOVO:** Validação de qualidade em tempo real (nitidez, brilho, tamanho da face)
+  - ✨ **NOVO:** Feedback visual com métricas durante captura
+  - Captura automática de 30 fotos de alta qualidade via webcam
+  - Estatísticas detalhadas: qualidade média, mínima e máxima
   - Data augmentation para melhor precisão (flip, rotação, escala, brilho, blur)
   - Treinamento automático de reconhecimento facial
   - Suporte para re-treinamento do modelo
-- **Frequência de Aula**:
+  
+- **Treinamento com Validação de Qualidade**:
+  - ✨ **NOVO:** Validação automática de consistência interna
+  - ✨ **NOVO:** Métricas detalhadas: score de consistência, distância média
+  - ✨ **NOVO:** Recomendações automáticas se qualidade baixa
+  - Interpretação clara: Excelente / Boa / Aceitável
+  
+- **Frequência de Aula Inteligente**:
+  - ✨ **NOVO:** Confirmação múltipla (3 frames consecutivos)
+  - ✨ **NOVO:** Ranking de top 3 candidatos em tempo real
+  - ✨ **NOVO:** Threshold adaptativo baseado em contexto
+  - ✨ **NOVO:** Feedback visual avançado com cores e status
   - Marcação automática de presença via reconhecimento facial
   - Anti-spoofing (detecção de liveness) para evitar fraudes com fotos
-  - Registro com data, hora e nível de confiança
+  - Registro com data, hora e nível de confiança médio
   - Visualização de registros do dia e histórico completo
   - Exportação de relatórios de presença em CSV
+  
 - **Características Técnicas**:
   - Face recognition com face_recognition library
   - CNN para detecção de liveness (anti-spoofing)
   - Early stopping para evitar overfitting
   - Persistência de embeddings faciais
-  - Confiança mínima de 60% para reconhecimento
+  - Confiança mínima configurável (padrão: 60%)
+  - ✨ **NOVO:** Avaliação de qualidade por frame (Laplacian + brilho)
+  - ✨ **NOVO:** Agregação de scores por aluno
+  - ✨ **NOVO:** Sistema de confirmação anti-falsos-positivos
 
 ### Gestão e Análise
 - **Dashboard**: Visualização de estatísticas e gráficos interativos

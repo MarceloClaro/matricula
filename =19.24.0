@@ -1,0 +1,22 @@
+Defaulting to user installation because normal site-packages is not writeable
+Collecting dlib
+  Downloading dlib-20.0.0.tar.gz (3.3 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.3/3.3 MB 128.8 MB/s eta 0:00:00
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: dlib
+  Building wheel for dlib (pyproject.toml): started
+  Building wheel for dlib (pyproject.toml): still running...
+  Building wheel for dlib (pyproject.toml): still running...
+  Building wheel for dlib (pyproject.toml): still running...
+  Building wheel for dlib (pyproject.toml): still running...
+  Building wheel for dlib (pyproject.toml): finished with status 'done'
+  Created wheel for dlib: filename=dlib-20.0.0-cp312-cp312-linux_x86_64.whl size=4158268 sha256=57045a9d4c0e3e7882722b7593cf9fcc6da9287a66f1b11cac1db3f8c1698013
+  Stored in directory: /home/runner/.cache/pip/wheels/35/bc/f4/3551aa7a295bf59b6cbf9cb588197b668052e5ec92a02aff7f
+Successfully built dlib
+Installing collected packages: dlib
+Successfully installed dlib-20.0.0
