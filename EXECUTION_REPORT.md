@@ -182,10 +182,10 @@ kill <PID>
 
 ## Ambiente de Execução
 
-- **Sistema Operacional**: Linux
-- **Python**: 3.12.3
-- **Diretório**: /home/runner/work/matricula/matricula
-- **Usuário**: runner
+- **Sistema Operacional**: <OPERATING_SYSTEM>
+- **Python**: <PYTHON_VERSION>
+- **Diretório**: <PROJECT_DIRECTORY>
+- **Usuário**: <USER>
 - **Modo**: Production (headless)
 
 ## Conclusão

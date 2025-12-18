@@ -4,7 +4,7 @@ Este documento explica como executar o Sistema de Matrícula Escolar 2026.
 
 ## Pré-requisitos
 
-- Python 3.8 ou superior
+- Python 3.8-3.11 (recomendado) - Python 3.12+ pode ter problemas de compatibilidade com algumas bibliotecas
 - pip (gerenciador de pacotes Python)
 
 ## Instalação das Dependências

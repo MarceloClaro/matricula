@@ -21,8 +21,19 @@ echo ""
 # Check if dependencies are installed
 if ! command -v streamlit &> /dev/null; then
     echo "Streamlit is not installed. Installing dependencies..."
+    
+    # Check if requirements.txt exists
+    if [ ! -f "requirements.txt" ]; then
+        echo "Error: requirements.txt not found in current directory."
+        exit 1
+    fi
+    
+    # Attempt to install dependencies
     if ! pip install -r requirements.txt; then
-        echo "Error: Failed to install dependencies. Please check your pip installation."
+        echo "Error: Failed to install dependencies. Please check:"
+        echo "  1. Ensure pip is properly installed"
+        echo "  2. Check your internet connection"
+        echo "  3. Verify requirements.txt is not corrupted"
         exit 1
     fi
 fi
