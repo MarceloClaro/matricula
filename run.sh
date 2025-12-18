@@ -21,12 +21,16 @@ echo ""
 # Check if dependencies are installed
 if ! command -v streamlit &> /dev/null; then
     echo "Streamlit is not installed. Installing dependencies..."
-    pip install -r requirements.txt
+    if ! pip install -r requirements.txt; then
+        echo "Error: Failed to install dependencies. Please check your pip installation."
+        exit 1
+    fi
 fi
 
-# Run the application
-streamlit run app.py --server.port 8501
-
 echo ""
-echo -e "${GREEN}Application started successfully!${NC}"
+echo -e "${GREEN}Starting application...${NC}"
 echo -e "Access the application at: ${BLUE}http://localhost:8501${NC}"
+echo ""
+
+# Run the application (runs in foreground)
+streamlit run app.py --server.port 8501

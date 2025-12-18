@@ -72,7 +72,6 @@ O framework foi iniciado com sucesso usando o comando:
 streamlit run app.py --server.port 8501 --server.headless true
 ```
 
-**PID do processo**: 3471  
 **Porta**: 8501  
 **Status HTTP**: 200 OK  
 **Modo**: Headless (sem browser automático)
@@ -99,19 +98,19 @@ Documentação completa em português com:
 
 ### Processo em Execução
 ```
-runner  3471  Sl  streamlit run app.py --server.port 8501
+runner  <PID>  Sl  streamlit run app.py --server.port 8501
 ```
 
 ### Portas Abertas
 ```
-tcp    0.0.0.0:8501    LISTEN    3471/python3
-tcp6   :::8501         LISTEN    3471/python3
+tcp    0.0.0.0:8501    LISTEN    <PID>/python3
+tcp6   :::8501         LISTEN    <PID>/python3
 ```
 
 ### Logs do Sistema
 ```
 You can now view your Streamlit app in your browser.
-Network URL: http://10.1.0.195:8501
+Network URL: http://<IP_ADDRESS>:8501
 ```
 
 ### Resposta HTTP
@@ -125,7 +124,7 @@ Content-Type: text/html
 A aplicação está acessível em:
 
 **URL Local**: http://localhost:8501  
-**URL de Rede**: http://10.1.0.195:8501
+**URL de Rede**: http://<IP_ADDRESS>:8501
 
 ## Funcionalidades Disponíveis
 
@@ -156,7 +155,7 @@ netstat -tlnp | grep 8501
 
 ### Parar o framework
 ```bash
-kill 3471
+kill <PID>
 ```
 
 ### Reiniciar o framework
