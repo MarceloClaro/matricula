@@ -16,3 +16,4 @@ from . import backup
 from . import registro_presenca
 from . import frequencia_aula
 from . import registro_lote
+from . import upload_facial_bulk
