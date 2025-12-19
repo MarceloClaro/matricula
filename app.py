@@ -4,7 +4,7 @@ Aplicação principal em Streamlit
 """
 import streamlit as st
 from data_manager import DataManager
-from modulos import cadastro_geral, pei, socioeconomico, saude, questionario_saeb, anamnese_pei, dashboard, crud, busca, pdf_generator, export_zip, backup, registro_presenca, frequencia_aula
+from modulos import cadastro_geral, pei, socioeconomico, saude, questionario_saeb, anamnese_pei, dashboard, crud, busca, pdf_generator, export_zip, backup, registro_presenca, frequencia_aula, registro_lote
 
 # Configuração da página
 st.set_page_config(
@@ -54,6 +54,7 @@ with st.sidebar:
             "🏥 Saúde",
             "📸 Registro de Presença",
             "✅ Frequência de Aula",
+            "📸👥 Registro em Lote (Foto da Turma)",
             "📊 Dashboard",
             "⚙️ Gerenciamento (CRUD)",
             "🔍 Busca Inteligente",
@@ -108,6 +109,7 @@ if menu_opcao == "🏠 Início":
     #### 🆕 Reconhecimento Facial e Presença
     - **Registro de Presença**: Cadastro facial de alunos com captura de 30 fotos em 10 segundos
     - **Frequência de Aula**: Marcação automática de presença com reconhecimento facial
+    - **🆕 Registro em Lote**: Upload de foto da turma para identificação automática e registro de presença em lote
     - **Anti-Spoofing**: Sistema de detecção de fotos para evitar fraudes
     - **Treinamento Automático**: Re-treina modelo a cada novo aluno cadastrado
     
@@ -129,8 +131,9 @@ if menu_opcao == "🏠 Início":
     2. **Complete os dados** nos módulos PEI, Socioeconômico, Questionário SAEB e Saúde
     3. **Cadastre faces** no "Registro de Presença" para reconhecimento facial
     4. **Marque presenças** usando "Frequência de Aula" com reconhecimento automático
-    5. **Visualize estatísticas** no Dashboard
-    6. **Gere documentos** em PDF conforme necessário
+    5. **🆕 Ou use "Registro em Lote"** para registrar presença de vários alunos de uma só vez com uma foto da turma
+    6. **Visualize estatísticas** no Dashboard
+    7. **Gere documentos** em PDF conforme necessário
     
     ### 💡 Dicas:
     
@@ -139,6 +142,7 @@ if menu_opcao == "🏠 Início":
     - Você pode exportar todos os dados em CSV e PDF
     - Os dados são salvos automaticamente em arquivos CSV na pasta 'data'
     - **Novo!** Sistema de reconhecimento facial com anti-spoofing
+    - **Novo!** Registro em lote: tire uma foto da turma e registre presença de todos de uma vez
     - **Novo!** Crie backups regulares dos seus dados para maior segurança
     
     ---
@@ -196,6 +200,9 @@ elif menu_opcao == "📸 Registro de Presença":
 
 elif menu_opcao == "✅ Frequência de Aula":
     frequencia_aula.render_frequencia_aula(data_manager)
+
+elif menu_opcao == "📸👥 Registro em Lote (Foto da Turma)":
+    registro_lote.render_registro_lote(data_manager)
 
 elif menu_opcao == "📊 Dashboard":
     dashboard.render_dashboard(data_manager)
