@@ -9,19 +9,12 @@ pillow==10.3.0
 opencv-python-headless==4.8.1.78
 scikit-learn==1.3.2
 
-# Face Recognition Dependencies have been moved to requirements-face.txt
-# to prevent deployment issues on Streamlit Cloud.
-# The core application works without face recognition features.
-# To enable face recognition locally:
-#   1. Install system dependencies from packages.txt
-#   2. Run: pip install -r requirements-face.txt
-# 
-# For Streamlit Cloud deployment with face recognition:
-#   - Temporarily uncomment the lines below before deployment
-#   - Note: dlib compilation may take 5-10 minutes on Streamlit Cloud
-# 
-# dlib>=19.24.0
-# face-recognition==1.3.0
+# Face Recognition Dependencies
+# These are now enabled for Streamlit Cloud deployment
+# Note: dlib compilation may take 5-10 minutes on Streamlit Cloud
+# System dependencies are specified in packages.txt
+dlib>=19.24.0
+face-recognition==1.3.0
 
 # Optional advanced features for face recognition (anti-spoofing, data augmentation)
 # To enable these features, install: pip install -r requirements-optional.txt

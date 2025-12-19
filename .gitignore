@@ -56,3 +56,6 @@ backup_before_restore/
 
 # Prevent accidental pip install artifacts
 =*
+
+# Test files
+test_face_recognition_availability.py
