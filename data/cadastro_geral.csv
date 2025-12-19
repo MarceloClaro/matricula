@@ -1,2 +1,13 @@
 id,nome_completo,nome_social,data_nascimento,cpf,codigo_inep,matricula,sexo,cor_raca,telefone,email,nis,nacionalidade,uf_nascimento,cidade_nascimento,pais_nacionalidade,nome_mae,cpf_mae,profissao_mae,nome_pai,cpf_pai,profissao_pai,rg,numero_documento,orgao_emissor,uf_emissor,data_expedicao,modelo_certidao,tipo_certidao,cartao_sus,documento_estrangeiro,justificativa_documentacao,cep,bairro,endereco,numero,complemento,zona,uf,cidade,cartao_nacional_sus,alergia,aluno_deficiencia,possui_laudo_medico,tipo_deficiencia,atendimentos_especializados,recursos_saeb,escolarizacao_outro_espaco,cid_10_dsm5,medicacao_uso,nome_medicacao,dosagem_medicacao,horario_medicacao,medico_responsavel,crm_medico,efeitos_esperados,efeitos_colaterais,escola_origem,escola_ano_anterior,programas_educacionais,rendimento_ano_anterior,movimento_escolar,ano_escolar,turno,status,utiliza_transporte,poder_responsavel_transporte,tipo_veiculo,data_matricula,foto_path
-1,João da Silva Teste,,2010-05-15,123.456.789-00,,,Masculino,,(85) 98765-4321,,,,,,,Maria da Silva,,,,,,,,,,,,,,,,60000-000,Centro,Rua Teste,123,,,CE,Fortaleza,,,,,,,,,,,,,,,,,,,,,,,5º Ano,Matutino,Ativo,,,,2025-12-10,data/fotos/test_student_photo.jpg
+1,Teste Cache,,2010-01-01,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Ativo,,,,2025-12-19,
+2,Aluno Teste 0,,2010-01-01,00000000000,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Ativo,,,,2025-12-19,
+3,Aluno Teste 1,,2010-01-01,00000000001,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Ativo,,,,2025-12-19,
+4,Aluno Teste 2,,2010-01-01,00000000002,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Ativo,,,,2025-12-19,
+5,Aluno Teste 3,,2010-01-01,00000000003,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Ativo,,,,2025-12-19,
+6,Aluno Teste 4,,2010-01-01,00000000004,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Ativo,,,,2025-12-19,
+7,Aluno Teste 5,,2010-01-01,00000000005,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Ativo,,,,2025-12-19,
+8,Aluno Teste 6,,2010-01-01,00000000006,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Ativo,,,,2025-12-19,
+9,Aluno Teste 7,,2010-01-01,00000000007,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Ativo,,,,2025-12-19,
+10,Aluno Teste 8,,2010-01-01,00000000008,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Ativo,,,,2025-12-19,
+11,Aluno Teste 9,,2010-01-01,00000000009,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Ativo,,,,2025-12-19,
+12,Transação Teste 1,,2010-01-01,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Ativo,,,,,
