@@ -55,6 +55,9 @@ class DataManager:
             'attendance': ['aluno_id', 'data']
         }
         
+        # Configurações de paginação
+        self._default_page_size = 50
+        
         self._init_files()
     
     def _validate_data(self, tipo, dados):
@@ -823,3 +826,445 @@ class DataManager:
         # Ordena por data (mais recente primeiro)
         backups.sort(key=lambda x: x['date'], reverse=True)
         return backups
+    
+    # ========== LAZY LOADING ==========
+    
+    class StudentDataLazy:
+        """
+        Classe para carregar dados de aluno de forma lazy (sob demanda)
+        """
+        def __init__(self, data_manager, aluno_id):
+            self._dm = data_manager
+            self._aluno_id = aluno_id
+            self._loaded = {}
+        
+        def __getattr__(self, name):
+            """Carrega dados apenas quando acessados"""
+            if name.startswith('_'):
+                raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+            
+            # Se já foi carregado, retorna do cache
+            if name in self._loaded:
+                return self._loaded[name]
+            
+            # Carrega dados conforme necessário
+            if name == 'cadastro':
+                data = self._dm.get_record('cadastro', self._aluno_id)
+            elif name in ['pei', 'socioeconomico', 'saude', 'questionario_saeb', 'anamnese_pei']:
+                df = self._dm.get_data(name)
+                if len(df) > 0:
+                    records = df[df['aluno_id'] == self._aluno_id]
+                    data = records.iloc[0].to_dict() if len(records) > 0 else None
+                else:
+                    data = None
+            else:
+                raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+            
+            # Armazena no cache
+            self._loaded[name] = data
+            return data
+        
+        def get_loaded_data(self):
+            """Retorna apenas os dados já carregados"""
+            return self._loaded.copy()
+        
+        def get_all_data(self):
+            """Força carregamento de todos os dados"""
+            for attr in ['cadastro', 'pei', 'socioeconomico', 'saude', 'questionario_saeb', 'anamnese_pei']:
+                getattr(self, attr)
+            return self._loaded.copy()
+    
+    def get_student_data_lazy(self, aluno_id):
+        """
+        Retorna objeto lazy para carregar dados do aluno sob demanda
+        
+        Args:
+            aluno_id: ID do aluno
+            
+        Returns:
+            StudentDataLazy: Objeto que carrega dados apenas quando acessados
+            
+        Example:
+            student = dm.get_student_data_lazy(1)
+            # Nada foi carregado ainda
+            
+            cadastro = student.cadastro  # Agora carrega cadastro
+            pei = student.pei            # Agora carrega PEI
+            # Outros dados ainda não foram carregados
+        """
+        return self.StudentDataLazy(self, aluno_id)
+    
+    # ========== PAGINAÇÃO ==========
+    
+    def get_data_paginated(self, tipo, page=1, page_size=None):
+        """
+        Retorna dados paginados
+        
+        Args:
+            tipo: Tipo de dado
+            page: Número da página (começa em 1)
+            page_size: Tamanho da página (None usa o padrão)
+            
+        Returns:
+            dict: {
+                'data': DataFrame com os dados da página,
+                'page': número da página atual,
+                'page_size': tamanho da página,
+                'total_records': total de registros,
+                'total_pages': total de páginas,
+                'has_next': bool indicando se há próxima página,
+                'has_prev': bool indicando se há página anterior
+            }
+        """
+        if page_size is None:
+            page_size = self._default_page_size
+        
+        # Valida parâmetros
+        if page < 1:
+            page = 1
+        if page_size < 1:
+            page_size = self._default_page_size
+        
+        # Carrega todos os dados
+        df = self.get_data(tipo)
+        total_records = len(df)
+        total_pages = (total_records + page_size - 1) // page_size  # Arredonda para cima
+        
+        # Ajusta página se for maior que o total
+        if page > total_pages and total_pages > 0:
+            page = total_pages
+        
+        # Calcula índices
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        
+        # Extrai página
+        page_data = df.iloc[start_idx:end_idx]
+        
+        return {
+            'data': page_data,
+            'page': page,
+            'page_size': page_size,
+            'total_records': total_records,
+            'total_pages': total_pages,
+            'has_next': page < total_pages,
+            'has_prev': page > 1
+        }
+    
+    def search_records_paginated(self, tipo, campo, valor, page=1, page_size=None):
+        """
+        Busca registros com paginação
+        
+        Args:
+            tipo: Tipo de dado
+            campo: Campo para buscar
+            valor: Valor para buscar
+            page: Número da página
+            page_size: Tamanho da página
+            
+        Returns:
+            dict: Resultado paginado (mesmo formato de get_data_paginated)
+        """
+        if page_size is None:
+            page_size = self._default_page_size
+        
+        # Busca todos os resultados
+        df = self.search_records(tipo, campo, valor)
+        total_records = len(df)
+        total_pages = (total_records + page_size - 1) // page_size
+        
+        # Ajusta página
+        if page < 1:
+            page = 1
+        if page > total_pages and total_pages > 0:
+            page = total_pages
+        
+        # Pagina resultados
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        page_data = df.iloc[start_idx:end_idx]
+        
+        return {
+            'data': page_data,
+            'page': page,
+            'page_size': page_size,
+            'total_records': total_records,
+            'total_pages': total_pages,
+            'has_next': page < total_pages,
+            'has_prev': page > 1
+        }
+    
+    # ========== QUERY BUILDER ==========
+    
+    class QueryBuilder:
+        """
+        Construtor de queries para buscas complexas
+        """
+        def __init__(self, data_manager, tipo):
+            self._dm = data_manager
+            self._tipo = tipo
+            self._filters = []
+            self._order_by = None
+            self._order_desc = False
+            self._limit = None
+            self._offset = 0
+        
+        def where(self, campo, operador, valor):
+            """
+            Adiciona filtro
+            
+            Args:
+                campo: Nome do campo
+                operador: '=', '!=', '>', '<', '>=', '<=', 'contains', 'startswith', 'endswith', 'in'
+                valor: Valor para comparar
+                
+            Returns:
+                self: Para encadeamento
+            """
+            self._filters.append({
+                'campo': campo,
+                'operador': operador,
+                'valor': valor
+            })
+            return self
+        
+        def order_by(self, campo, desc=False):
+            """
+            Define ordenação
+            
+            Args:
+                campo: Campo para ordenar
+                desc: True para ordem decrescente
+                
+            Returns:
+                self: Para encadeamento
+            """
+            self._order_by = campo
+            self._order_desc = desc
+            return self
+        
+        def limit(self, limit):
+            """
+            Limita número de resultados
+            
+            Args:
+                limit: Número máximo de resultados
+                
+            Returns:
+                self: Para encadeamento
+            """
+            self._limit = limit
+            return self
+        
+        def offset(self, offset):
+            """
+            Define offset (pular registros)
+            
+            Args:
+                offset: Número de registros para pular
+                
+            Returns:
+                self: Para encadeamento
+            """
+            self._offset = offset
+            return self
+        
+        def execute(self):
+            """
+            Executa a query e retorna resultados
+            
+            Returns:
+                DataFrame: Resultados da query
+            """
+            # Carrega dados
+            df = self._dm.get_data(self._tipo)
+            
+            if len(df) == 0:
+                return df
+            
+            # Aplica filtros
+            for filter_def in self._filters:
+                campo = filter_def['campo']
+                operador = filter_def['operador']
+                valor = filter_def['valor']
+                
+                if campo not in df.columns:
+                    continue
+                
+                if operador == '=':
+                    df = df[df[campo] == valor]
+                elif operador == '!=':
+                    df = df[df[campo] != valor]
+                elif operador == '>':
+                    df = df[df[campo] > valor]
+                elif operador == '<':
+                    df = df[df[campo] < valor]
+                elif operador == '>=':
+                    df = df[df[campo] >= valor]
+                elif operador == '<=':
+                    df = df[df[campo] <= valor]
+                elif operador == 'contains':
+                    df = df[df[campo].astype(str).str.contains(str(valor), case=False, na=False)]
+                elif operador == 'startswith':
+                    df = df[df[campo].astype(str).str.startswith(str(valor), na=False)]
+                elif operador == 'endswith':
+                    df = df[df[campo].astype(str).str.endswith(str(valor), na=False)]
+                elif operador == 'in':
+                    df = df[df[campo].isin(valor)]
+            
+            # Ordena
+            if self._order_by and self._order_by in df.columns:
+                df = df.sort_values(by=self._order_by, ascending=not self._order_desc)
+            
+            # Aplica offset e limit
+            if self._offset > 0:
+                df = df.iloc[self._offset:]
+            
+            if self._limit is not None:
+                df = df.iloc[:self._limit]
+            
+            return df
+        
+        def count(self):
+            """
+            Retorna número de registros que correspondem aos filtros
+            
+            Returns:
+                int: Número de registros
+            """
+            return len(self.execute())
+        
+        def first(self):
+            """
+            Retorna primeiro registro
+            
+            Returns:
+                dict ou None: Primeiro registro ou None se não houver resultados
+            """
+            df = self.limit(1).execute()
+            return df.iloc[0].to_dict() if len(df) > 0 else None
+        
+        def paginate(self, page=1, page_size=50):
+            """
+            Retorna resultados paginados
+            
+            Args:
+                page: Número da página
+                page_size: Tamanho da página
+                
+            Returns:
+                dict: Resultado paginado
+            """
+            # Executa query sem limit/offset
+            original_limit = self._limit
+            original_offset = self._offset
+            
+            self._limit = None
+            self._offset = 0
+            all_results = self.execute()
+            
+            # Restaura
+            self._limit = original_limit
+            self._offset = original_offset
+            
+            # Pagina
+            total_records = len(all_results)
+            total_pages = (total_records + page_size - 1) // page_size
+            
+            if page < 1:
+                page = 1
+            if page > total_pages and total_pages > 0:
+                page = total_pages
+            
+            start_idx = (page - 1) * page_size
+            end_idx = start_idx + page_size
+            page_data = all_results.iloc[start_idx:end_idx]
+            
+            return {
+                'data': page_data,
+                'page': page,
+                'page_size': page_size,
+                'total_records': total_records,
+                'total_pages': total_pages,
+                'has_next': page < total_pages,
+                'has_prev': page > 1
+            }
+    
+    def query(self, tipo):
+        """
+        Cria um query builder para buscas complexas
+        
+        Args:
+            tipo: Tipo de dado
+            
+        Returns:
+            QueryBuilder: Objeto para construir query
+            
+        Example:
+            # Busca alunos ativos com nome começando com 'João'
+            results = dm.query('cadastro') \\
+                        .where('status', '=', 'Ativo') \\
+                        .where('nome_completo', 'startswith', 'João') \\
+                        .order_by('nome_completo') \\
+                        .limit(10) \\
+                        .execute()
+            
+            # Busca paginada
+            page = dm.query('cadastro') \\
+                     .where('ano_escolar', 'in', ['1º', '2º', '3º']) \\
+                     .order_by('nome_completo') \\
+                     .paginate(page=1, page_size=20)
+        """
+        return self.QueryBuilder(self, tipo)
+    
+    # ========== COMPRESSÃO MELHORADA DE BACKUPS ==========
+    
+    def create_backup_compressed(self, backup_path=None, compression_level=9):
+        """
+        Cria backup com compressão melhorada (nível máximo por padrão)
+        
+        Args:
+            backup_path: Caminho do backup (None para gerar automaticamente)
+            compression_level: Nível de compressão (0-9, sendo 9 o máximo)
+            
+        Returns:
+            dict: {
+                'path': caminho do backup,
+                'size': tamanho em bytes,
+                'compressed_size': tamanho comprimido em bytes,
+                'compression_ratio': taxa de compressão (%)
+            }
+        """
+        if backup_path is None:
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            backup_filename = f'backup_matricula_{timestamp}.zip'
+            backup_path = os.path.join(self.backup_dir, backup_filename)
+        
+        # Cria diretório se não existir
+        backup_dir = os.path.dirname(backup_path)
+        if not os.path.exists(backup_dir):
+            os.makedirs(backup_dir)
+        
+        # Calcula tamanho original
+        original_size = 0
+        files_to_backup = []
+        for tipo, filepath in self.files.items():
+            if os.path.exists(filepath):
+                original_size += os.path.getsize(filepath)
+                files_to_backup.append(filepath)
+        
+        # Cria ZIP com compressão máxima
+        with zipfile.ZipFile(backup_path, 'w', zipfile.ZIP_DEFLATED, compresslevel=compression_level) as zipf:
+            for filepath in files_to_backup:
+                zipf.write(filepath, os.path.basename(filepath))
+        
+        # Calcula estatísticas
+        compressed_size = os.path.getsize(backup_path)
+        compression_ratio = ((original_size - compressed_size) / original_size * 100) if original_size > 0 else 0
+        
+        return {
+            'path': backup_path,
+            'size': original_size,
+            'compressed_size': compressed_size,
+            'compression_ratio': compression_ratio
+        }
