@@ -140,6 +140,15 @@ def process_bulk_upload(uploaded_file, nome_to_id, face_system, data_manager):
         # Extrair ZIP
         try:
             with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                # Validar membros do ZIP para prevenir directory traversal (Zip Slip)
+                for member in zip_ref.namelist():
+                    # Normalizar caminho e verificar se está dentro do temp_dir
+                    member_path = os.path.normpath(os.path.join(temp_dir, member))
+                    if not member_path.startswith(os.path.normpath(temp_dir)):
+                        st.error(f"❌ Arquivo ZIP contém caminho suspeito: {member}")
+                        return
+                
+                # Extração segura
                 zip_ref.extractall(temp_dir)
         except Exception as e:
             st.error(f"❌ Erro ao extrair ZIP: {str(e)}")
@@ -162,9 +171,10 @@ def process_bulk_upload(uploaded_file, nome_to_id, face_system, data_manager):
                 
                 if nome_pasta in nome_to_id:
                     aluno_id = nome_to_id[nome_pasta]
-                    # Contar imagens
+                    # Contar imagens - formatos suportados
+                    SUPPORTED_FORMATS = ('.jpg', '.jpeg', '.png', '.JPG', '.JPEG', '.PNG')
                     imagens = [f for f in os.listdir(item_path) 
-                              if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+                              if f.lower().endswith(SUPPORTED_FORMATS)]
                     
                     if len(imagens) > 0:
                         alunos_encontrados[aluno_id] = {
@@ -217,7 +227,18 @@ def treinar_modelo_bulk(alunos_encontrados, face_system, data_manager):
     st.markdown("---")
     st.header("🎓 Iniciando Treinamento")
     
+    # Adicionar informação sobre tempo estimado
     total_alunos = len(alunos_encontrados)
+    total_imagens = sum(info['num_imagens'] for info in alunos_encontrados.values())
+    st.info(f"""
+    📊 **Estimativa de processamento:**
+    - Total de alunos: {total_alunos}
+    - Total de imagens: {total_imagens}
+    - Tempo estimado: {total_imagens * 2 // 60} - {total_imagens * 3 // 60} minutos
+    
+    ⏳ Por favor, aguarde. O treinamento será executado sequencialmente.
+    """)
+    
     progresso_geral = st.progress(0)
     status_geral = st.empty()
     
@@ -357,13 +378,38 @@ def import_model(uploaded_model, face_system):
         face_system: Sistema de reconhecimento facial
     """
     try:
-        # Carregar dados
+        # Carregar dados - NOTA: pickle pode ser inseguro com fontes não confiáveis
+        # Considere usar apenas modelos de fontes confiáveis
         model_bytes = uploaded_model.read()
-        data = pickle.loads(model_bytes)
         
-        # Validar estrutura
+        # Validação básica de tamanho
+        if len(model_bytes) > 100 * 1024 * 1024:  # 100MB limite
+            st.error("❌ Arquivo muito grande. Tamanho máximo: 100MB")
+            return
+        
+        # Tentar carregar com validação
+        try:
+            data = pickle.loads(model_bytes)
+        except (pickle.UnpicklingError, EOFError) as e:
+            st.error(f"❌ Arquivo de modelo inválido ou corrompido: {str(e)}")
+            return
+        
+        # Validar estrutura e tipos
+        if not isinstance(data, dict):
+            st.error("❌ Estrutura de modelo inválida!")
+            return
+            
         if 'encodings' not in data or 'ids' not in data:
-            st.error("❌ Arquivo de modelo inválido!")
+            st.error("❌ Arquivo de modelo inválido - campos obrigatórios faltando!")
+            return
+        
+        # Validar tipos
+        if not isinstance(data['encodings'], list) or not isinstance(data['ids'], list):
+            st.error("❌ Tipos de dados inválidos no modelo!")
+            return
+        
+        if len(data['encodings']) != len(data['ids']):
+            st.error("❌ Inconsistência nos dados do modelo!")
             return
         
         # Mostrar informações
@@ -382,10 +428,17 @@ def import_model(uploaded_model, face_system):
         if st.button("⚠️ CONFIRMAR: Substituir modelo atual", type="secondary"):
             # Fazer backup do modelo atual
             if len(face_system.known_face_encodings) > 0:
-                backup_path = face_system.embeddings_path + '.backup'
-                face_system.save_embeddings()
-                shutil.copy2(face_system.embeddings_path, backup_path)
-                st.info(f"💾 Backup do modelo atual salvo em: {backup_path}")
+                try:
+                    # Salvar modelo atual primeiro
+                    face_system.save_embeddings()
+                    
+                    # Criar backup se o arquivo existe
+                    if os.path.exists(face_system.embeddings_path):
+                        backup_path = face_system.embeddings_path + '.backup'
+                        shutil.copy2(face_system.embeddings_path, backup_path)
+                        st.info(f"💾 Backup do modelo atual salvo em: {backup_path}")
+                except Exception as e:
+                    st.warning(f"⚠️ Não foi possível criar backup: {str(e)}")
             
             # Substituir modelo
             face_system.known_face_encodings = data['encodings']
