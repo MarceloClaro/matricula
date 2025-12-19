@@ -4,7 +4,7 @@ Aplicação principal em Streamlit
 """
 import streamlit as st
 from data_manager import DataManager
-from modulos import cadastro_geral, pei, socioeconomico, saude, questionario_saeb, anamnese_pei, dashboard, crud, busca, pdf_generator, export_zip, backup, registro_presenca, frequencia_aula, registro_lote
+from modulos import cadastro_geral, pei, socioeconomico, saude, questionario_saeb, anamnese_pei, dashboard, crud, busca, pdf_generator, export_zip, backup, registro_presenca, frequencia_aula, registro_lote, upload_facial_bulk
 
 # Configuração da página
 st.set_page_config(
@@ -55,6 +55,7 @@ with st.sidebar:
             "📸 Registro de Presença",
             "✅ Frequência de Aula",
             "📸👥 Registro em Lote (Foto da Turma)",
+            "📦🖼️ Upload em Lote de Faces",
             "📊 Dashboard",
             "⚙️ Gerenciamento (CRUD)",
             "🔍 Busca Inteligente",
@@ -110,6 +111,8 @@ if menu_opcao == "🏠 Início":
     - **Registro de Presença**: Cadastro facial de alunos com captura de 30 fotos em 10 segundos
     - **Frequência de Aula**: Marcação automática de presença com reconhecimento facial
     - **🆕 Registro em Lote**: Upload de foto da turma para identificação automática e registro de presença em lote
+    - **🆕 Upload em Lote de Faces**: Upload de ZIP com pastas de imagens faciais de múltiplos alunos para treinamento em massa
+    - **Exportar/Importar Modelo**: Baixe e faça upload de modelos treinados para reutilização sem retreinamento
     - **Anti-Spoofing**: Sistema de detecção de fotos para evitar fraudes
     - **Treinamento Automático**: Re-treina modelo a cada novo aluno cadastrado
     
@@ -143,6 +146,8 @@ if menu_opcao == "🏠 Início":
     - Os dados são salvos automaticamente em arquivos CSV na pasta 'data'
     - **Novo!** Sistema de reconhecimento facial com anti-spoofing
     - **Novo!** Registro em lote: tire uma foto da turma e registre presença de todos de uma vez
+    - **Novo!** Upload em lote de faces: envie um ZIP com fotos de vários alunos e treine o modelo de uma vez
+    - **Novo!** Exporte e importe modelos treinados para evitar retreinamento
     - **Novo!** Crie backups regulares dos seus dados para maior segurança
     
     ---
@@ -203,6 +208,9 @@ elif menu_opcao == "✅ Frequência de Aula":
 
 elif menu_opcao == "📸👥 Registro em Lote (Foto da Turma)":
     registro_lote.render_registro_lote(data_manager)
+
+elif menu_opcao == "📦🖼️ Upload em Lote de Faces":
+    upload_facial_bulk.render_upload_facial_bulk(data_manager)
 
 elif menu_opcao == "📊 Dashboard":
     dashboard.render_dashboard(data_manager)
