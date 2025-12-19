@@ -8,7 +8,6 @@ import zipfile
 import shutil
 import tempfile
 from datetime import datetime
-from functools import lru_cache
 import threading
 
 class DataManager:
