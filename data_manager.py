@@ -1,5 +1,6 @@
 """
 Módulo de gerenciamento de dados com persistência em CSV
+Inclui: Cache, Validação, Indexação e Transações
 """
 import pandas as pd
 import os
@@ -7,6 +8,7 @@ import zipfile
 import shutil
 import tempfile
 from datetime import datetime
+import threading
 
 class DataManager:
     def __init__(self, data_dir='data'):
@@ -30,7 +32,120 @@ class DataManager:
             'attendance': os.path.join(data_dir, 'attendance.csv')
         }
         
+        # Cache de dados em memória para acesso rápido
+        self._cache = {}
+        self._cache_timestamp = {}
+        self._cache_ttl = 60  # TTL em segundos (1 minuto)
+        
+        # Índices para busca rápida
+        self._indexes = {}
+        
+        # Lock para operações thread-safe
+        self._lock = threading.Lock()
+        
+        # Campos obrigatórios por tipo
+        self._required_fields = {
+            'cadastro': ['nome_completo', 'data_nascimento', 'status'],
+            'pei': ['aluno_id', 'necessidade_especial'],
+            'socioeconomico': ['aluno_id'],
+            'saude': ['aluno_id'],
+            'questionario_saeb': ['aluno_id'],
+            'anamnese_pei': ['aluno_id'],
+            'face_embeddings': ['aluno_id'],
+            'attendance': ['aluno_id', 'data']
+        }
+        
+        # Configurações de paginação
+        self._default_page_size = 50
+        
         self._init_files()
+    
+    def _validate_data(self, tipo, dados):
+        """
+        Valida dados antes de salvar
+        
+        Args:
+            tipo: Tipo de dado (cadastro, pei, etc.)
+            dados: Dicionário com os dados
+            
+        Returns:
+            tuple: (valido: bool, mensagem_erro: str ou None)
+        """
+        # Verifica campos obrigatórios
+        if tipo in self._required_fields:
+            for field in self._required_fields[tipo]:
+                if field not in dados or dados[field] is None or str(dados[field]).strip() == '':
+                    return False, f"Campo obrigatório ausente ou vazio: {field}"
+        
+        # Validações específicas por tipo
+        if tipo == 'cadastro':
+            # Valida CPF (formato básico)
+            if 'cpf' in dados and dados['cpf']:
+                cpf = str(dados['cpf']).replace('.', '').replace('-', '').strip()
+                if cpf and (len(cpf) != 11 or not cpf.isdigit()):
+                    return False, "CPF inválido: deve conter 11 dígitos"
+            
+            # Valida data de nascimento
+            if 'data_nascimento' in dados and dados['data_nascimento']:
+                try:
+                    data = pd.to_datetime(dados['data_nascimento'])
+                    if data > pd.Timestamp.now():
+                        return False, "Data de nascimento não pode ser futura"
+                except:
+                    return False, "Data de nascimento inválida"
+        
+        return True, None
+    
+    def _invalidate_cache(self, tipo):
+        """Invalida cache para um tipo específico"""
+        if tipo in self._cache:
+            del self._cache[tipo]
+        if tipo in self._cache_timestamp:
+            del self._cache_timestamp[tipo]
+        if tipo in self._indexes:
+            del self._indexes[tipo]
+    
+    def _is_cache_valid(self, tipo):
+        """Verifica se cache é válido"""
+        if tipo not in self._cache or tipo not in self._cache_timestamp:
+            return False
+        
+        elapsed = (datetime.now() - self._cache_timestamp[tipo]).total_seconds()
+        return elapsed < self._cache_ttl
+    
+    def _build_indexes(self, tipo, df):
+        """Cria índices para busca rápida"""
+        if len(df) == 0:
+            return
+        
+        self._indexes[tipo] = {}
+        
+        # Índice por ID
+        if 'id' in df.columns:
+            self._indexes[tipo]['id'] = df.set_index('id').to_dict('index')
+        
+        # Índices específicos por tipo
+        if tipo == 'cadastro':
+            # Índice por CPF
+            if 'cpf' in df.columns:
+                cpf_index = {}
+                for idx, row in df.iterrows():
+                    if pd.notna(row.get('cpf')):
+                        cpf = str(row['cpf']).replace('.', '').replace('-', '').strip()
+                        if cpf:
+                            cpf_index[cpf] = row.to_dict()
+                self._indexes[tipo]['cpf'] = cpf_index
+            
+            # Índice por nome (primeira palavra para busca rápida)
+            if 'nome_completo' in df.columns:
+                name_index = {}
+                for idx, row in df.iterrows():
+                    if pd.notna(row.get('nome_completo')):
+                        first_name = str(row['nome_completo']).split()[0].upper()
+                        if first_name not in name_index:
+                            name_index[first_name] = []
+                        name_index[first_name].append(row.to_dict())
+                self._indexes[tipo]['nome'] = name_index
     
     def _init_files(self):
         """Inicializa arquivos CSV se não existirem"""
@@ -179,88 +294,290 @@ class DataManager:
             ])
             df.to_csv(self.files['attendance'], index=False)
     
-    def get_data(self, tipo):
-        """Retorna dados do tipo especificado"""
+    def _get_data_internal(self, tipo):
+        """Internal version without lock"""
+        # Verifica cache
+        if self._is_cache_valid(tipo):
+            return self._cache[tipo].copy()
+        
+        # Carrega do arquivo
         if tipo in self.files:
             try:
-                # Read CSV and keep string columns as strings (avoid auto-conversion to float for NaN)
                 df = pd.read_csv(self.files[tipo], dtype=str, keep_default_na=False)
-                # Convert 'id' and numeric columns back to appropriate types
                 if 'id' in df.columns and len(df) > 0:
                     df['id'] = pd.to_numeric(df['id'], errors='coerce').fillna(0).astype(int)
                 if 'aluno_id' in df.columns and len(df) > 0:
                     df['aluno_id'] = pd.to_numeric(df['aluno_id'], errors='coerce').fillna(0).astype(int)
-                return df
+                
+                # Atualiza cache
+                self._cache[tipo] = df.copy()
+                self._cache_timestamp[tipo] = datetime.now()
+                
+                # Constrói índices
+                self._build_indexes(tipo, df)
+                
+                return df.copy()
             except (FileNotFoundError, pd.errors.EmptyDataError):
                 return pd.DataFrame()
         return pd.DataFrame()
     
-    def save_data(self, tipo, df):
-        """Salva dados do tipo especificado"""
+    def get_data(self, tipo):
+        """
+        Retorna dados do tipo especificado com cache
+        
+        Args:
+            tipo: Tipo de dado
+            
+        Returns:
+            DataFrame com os dados
+        """
+        with self._lock:
+            return self._get_data_internal(tipo)
+    
+    def _save_data_internal(self, tipo, df):
+        """Internal version without lock"""
         if tipo in self.files:
             df.to_csv(self.files[tipo], index=False)
+            # Invalida cache
+            self._invalidate_cache(tipo)
             return True
         return False
+    
+    def save_data(self, tipo, df):
+        """
+        Salva dados do tipo especificado e invalida cache
+        
+        Args:
+            tipo: Tipo de dado
+            df: DataFrame com os dados
+            
+        Returns:
+            bool: True se salvou com sucesso
+        """
+        with self._lock:
+            return self._save_data_internal(tipo, df)
     
     def add_record(self, tipo, dados):
-        """Adiciona novo registro"""
-        df = self.get_data(tipo)
+        """
+        Adiciona novo registro com validação
         
-        # Gera novo ID
-        if len(df) == 0:
-            novo_id = 1
-        else:
-            novo_id = df['id'].max() + 1
+        Args:
+            tipo: Tipo de dado
+            dados: Dicionário com os dados
+            
+        Returns:
+            int: ID do novo registro ou None se falhou
+            
+        Raises:
+            ValueError: Se validação falhar
+        """
+        # Valida dados
+        valido, erro = self._validate_data(tipo, dados)
+        if not valido:
+            raise ValueError(f"Validação falhou: {erro}")
         
-        dados['id'] = novo_id
-        
-        # Adiciona data de cadastro se não existir
-        if 'data_cadastro' in df.columns and 'data_cadastro' not in dados:
-            dados['data_cadastro'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        
-        # Adiciona data de matrícula para cadastro geral
-        if tipo == 'cadastro' and 'data_matricula' not in dados:
-            dados['data_matricula'] = datetime.now().strftime('%Y-%m-%d')
-        
-        # Converte para DataFrame e concatena
-        novo_df = pd.DataFrame([dados])
-        df = pd.concat([df, novo_df], ignore_index=True)
-        
-        self.save_data(tipo, df)
-        return novo_id
+        with self._lock:
+            df = self._get_data_internal(tipo)
+            
+            # Gera novo ID
+            if len(df) == 0:
+                novo_id = 1
+            else:
+                novo_id = df['id'].max() + 1
+            
+            dados['id'] = novo_id
+            
+            # Adiciona data de cadastro se não existir
+            if 'data_cadastro' in df.columns and 'data_cadastro' not in dados:
+                dados['data_cadastro'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            
+            # Adiciona data de matrícula para cadastro geral
+            if tipo == 'cadastro' and 'data_matricula' not in dados:
+                dados['data_matricula'] = datetime.now().strftime('%Y-%m-%d')
+            
+            # Converte para DataFrame e concatena
+            novo_df = pd.DataFrame([dados])
+            df = pd.concat([df, novo_df], ignore_index=True)
+            
+            self._save_data_internal(tipo, df)
+            return novo_id
     
     def update_record(self, tipo, record_id, dados):
-        """Atualiza registro existente"""
-        df = self.get_data(tipo)
+        """
+        Atualiza registro existente com validação
         
-        if len(df) == 0:
-            return False
-        
-        # Atualiza os dados
-        idx = df[df['id'] == record_id].index
-        if len(idx) > 0:
-            for key, value in dados.items():
-                if key in df.columns:
-                    df.at[idx[0], key] = value
+        Args:
+            tipo: Tipo de dado
+            record_id: ID do registro
+            dados: Dicionário com os dados a atualizar
             
-            self.save_data(tipo, df)
-            return True
+        Returns:
+            bool: True se atualizou com sucesso
+            
+        Raises:
+            ValueError: Se validação falhar
+        """
+        # Valida apenas os campos fornecidos
+        for field in dados:
+            if field in self._required_fields.get(tipo, []):
+                if dados[field] is None or str(dados[field]).strip() == '':
+                    raise ValueError(f"Campo obrigatório não pode ser vazio: {field}")
         
-        return False
+        with self._lock:
+            df = self._get_data_internal(tipo)
+            
+            if len(df) == 0:
+                return False
+            
+            # Atualiza os dados
+            idx = df[df['id'] == record_id].index
+            if len(idx) > 0:
+                for key, value in dados.items():
+                    if key in df.columns:
+                        df.at[idx[0], key] = value
+                
+                self._save_data_internal(tipo, df)
+                return True
+            
+            return False
     
     def delete_record(self, tipo, record_id):
-        """Deleta registro"""
-        df = self.get_data(tipo)
+        """
+        Deleta registro com suporte a transação
         
-        if len(df) == 0:
-            return False
+        Args:
+            tipo: Tipo de dado
+            record_id: ID do registro
+            
+        Returns:
+            bool: True se deletou com sucesso
+        """
+        with self._lock:
+            df = self._get_data_internal(tipo)
+            
+            if len(df) == 0:
+                return False
+            
+            df = df[df['id'] != record_id]
+            self._save_data_internal(tipo, df)
+            return True
+    
+    def execute_transaction(self, operations):
+        """
+        Executa múltiplas operações de forma atômica
         
-        df = df[df['id'] != record_id]
-        self.save_data(tipo, df)
-        return True
+        Args:
+            operations: Lista de tuplas (operacao, tipo, *args)
+                       operacao pode ser: 'add', 'update', 'delete'
+                       
+        Returns:
+            tuple: (success: bool, results: list, error: str or None)
+            
+        Example:
+            operations = [
+                ('add', 'cadastro', {'nome_completo': 'João', 'status': 'Ativo'}),
+                ('add', 'pei', {'aluno_id': 1, 'necessidade_especial': 'Sim'})
+            ]
+        """
+        results = []
+        backups = {}
+        
+        try:
+            with self._lock:
+                # Faz backup de todos os tipos afetados
+                tipos_afetados = set(op[1] for op in operations)
+                for tipo in tipos_afetados:
+                    backups[tipo] = self._get_data_internal(tipo).copy()
+                
+                # Executa operações SEM nested locks
+                for operation in operations:
+                    op_type = operation[0]
+                    tipo = operation[1]
+                    
+                    if op_type == 'add':
+                        dados = operation[2]
+                        # Valida
+                        valido, erro = self._validate_data(tipo, dados)
+                        if not valido:
+                            raise ValueError(f"Validação falhou: {erro}")
+                        
+                        # Adiciona
+                        df = self._get_data_internal(tipo)
+                        novo_id = 1 if len(df) == 0 else df['id'].max() + 1
+                        dados['id'] = novo_id
+                        if 'data_cadastro' in df.columns and 'data_cadastro' not in dados:
+                            dados['data_cadastro'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                        novo_df = pd.DataFrame([dados])
+                        df = pd.concat([df, novo_df], ignore_index=True)
+                        self._save_data_internal(tipo, df)
+                        results.append(('add', tipo, novo_id))
+                    
+                    elif op_type == 'update':
+                        record_id = operation[2]
+                        dados = operation[3]
+                        # Atualiza
+                        df = self._get_data_internal(tipo)
+                        idx = df[df['id'] == record_id].index
+                        if len(idx) > 0:
+                            for key, value in dados.items():
+                                if key in df.columns:
+                                    df.at[idx[0], key] = value
+                            self._save_data_internal(tipo, df)
+                            results.append(('update', tipo, True))
+                        else:
+                            results.append(('update', tipo, False))
+                    
+                    elif op_type == 'delete':
+                        record_id = operation[2]
+                        df = self._get_data_internal(tipo)
+                        df = df[df['id'] != record_id]
+                        self._save_data_internal(tipo, df)
+                        results.append(('delete', tipo, True))
+                    
+                    else:
+                        raise ValueError(f"Operação inválida: {op_type}")
+                
+                return True, results, None
+                
+        except Exception as e:
+            # Rollback: restaura backups
+            for tipo, backup_df in backups.items():
+                self._save_data_internal(tipo, backup_df)
+            
+            return False, results, str(e)
+    
+    def clear_cache(self):
+        """Limpa todo o cache"""
+        with self._lock:
+            self._cache.clear()
+            self._cache_timestamp.clear()
+            self._indexes.clear()
+    
+    def get_cache_stats(self):
+        """Retorna estatísticas do cache"""
+        stats = {
+            'cached_types': list(self._cache.keys()),
+            'cache_sizes': {k: len(v) for k, v in self._cache.items()},
+            'indexes': {k: list(v.keys()) for k, v in self._indexes.items()}
+        }
+        return stats
     
     def get_record(self, tipo, record_id):
-        """Retorna registro específico"""
+        """
+        Retorna registro específico usando índice quando possível
+        
+        Args:
+            tipo: Tipo de dado
+            record_id: ID do registro
+            
+        Returns:
+            dict: Dados do registro ou None
+        """
+        # Tenta usar índice primeiro (mais rápido)
+        if tipo in self._indexes and 'id' in self._indexes[tipo]:
+            return self._indexes[tipo]['id'].get(record_id)
+        
+        # Fallback para busca no DataFrame
         df = self.get_data(tipo)
         
         if len(df) == 0:
@@ -271,6 +588,51 @@ class DataManager:
             return record.iloc[0].to_dict()
         
         return None
+    
+    def get_record_by_cpf(self, cpf):
+        """
+        Busca rápida por CPF usando índice
+        
+        Args:
+            cpf: CPF do aluno
+            
+        Returns:
+            dict: Dados do registro ou None
+        """
+        cpf_clean = str(cpf).replace('.', '').replace('-', '').strip()
+        
+        if 'cadastro' in self._indexes and 'cpf' in self._indexes['cadastro']:
+            return self._indexes['cadastro']['cpf'].get(cpf_clean)
+        
+        # Fallback para busca tradicional
+        return self.search_records('cadastro', 'cpf', cpf).to_dict('records')[0] if len(self.search_records('cadastro', 'cpf', cpf)) > 0 else None
+    
+    def search_by_name(self, nome):
+        """
+        Busca otimizada por nome usando índice
+        
+        Args:
+            nome: Nome ou parte do nome
+            
+        Returns:
+            list: Lista de registros encontrados
+        """
+        if not nome:
+            return []
+        
+        first_word = str(nome).split()[0].upper()
+        
+        if 'cadastro' in self._indexes and 'nome' in self._indexes['cadastro']:
+            # Busca usando índice
+            results = []
+            for key, records in self._indexes['cadastro']['nome'].items():
+                if first_word in key or key in first_word:
+                    results.extend(records)
+            return results
+        
+        # Fallback para busca tradicional
+        df = self.search_records('cadastro', 'nome_completo', nome)
+        return df.to_dict('records') if len(df) > 0 else []
     
     def search_records(self, tipo, campo, valor):
         """Busca registros por campo"""
@@ -464,3 +826,445 @@ class DataManager:
         # Ordena por data (mais recente primeiro)
         backups.sort(key=lambda x: x['date'], reverse=True)
         return backups
+    
+    # ========== LAZY LOADING ==========
+    
+    class StudentDataLazy:
+        """
+        Classe para carregar dados de aluno de forma lazy (sob demanda)
+        """
+        def __init__(self, data_manager, aluno_id):
+            self._dm = data_manager
+            self._aluno_id = aluno_id
+            self._loaded = {}
+        
+        def __getattr__(self, name):
+            """Carrega dados apenas quando acessados"""
+            if name.startswith('_'):
+                raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+            
+            # Se já foi carregado, retorna do cache
+            if name in self._loaded:
+                return self._loaded[name]
+            
+            # Carrega dados conforme necessário
+            if name == 'cadastro':
+                data = self._dm.get_record('cadastro', self._aluno_id)
+            elif name in ['pei', 'socioeconomico', 'saude', 'questionario_saeb', 'anamnese_pei']:
+                df = self._dm.get_data(name)
+                if len(df) > 0:
+                    records = df[df['aluno_id'] == self._aluno_id]
+                    data = records.iloc[0].to_dict() if len(records) > 0 else None
+                else:
+                    data = None
+            else:
+                raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+            
+            # Armazena no cache
+            self._loaded[name] = data
+            return data
+        
+        def get_loaded_data(self):
+            """Retorna apenas os dados já carregados"""
+            return self._loaded.copy()
+        
+        def get_all_data(self):
+            """Força carregamento de todos os dados"""
+            for attr in ['cadastro', 'pei', 'socioeconomico', 'saude', 'questionario_saeb', 'anamnese_pei']:
+                getattr(self, attr)
+            return self._loaded.copy()
+    
+    def get_student_data_lazy(self, aluno_id):
+        """
+        Retorna objeto lazy para carregar dados do aluno sob demanda
+        
+        Args:
+            aluno_id: ID do aluno
+            
+        Returns:
+            StudentDataLazy: Objeto que carrega dados apenas quando acessados
+            
+        Example:
+            student = dm.get_student_data_lazy(1)
+            # Nada foi carregado ainda
+            
+            cadastro = student.cadastro  # Agora carrega cadastro
+            pei = student.pei            # Agora carrega PEI
+            # Outros dados ainda não foram carregados
+        """
+        return self.StudentDataLazy(self, aluno_id)
+    
+    # ========== PAGINAÇÃO ==========
+    
+    def get_data_paginated(self, tipo, page=1, page_size=None):
+        """
+        Retorna dados paginados
+        
+        Args:
+            tipo: Tipo de dado
+            page: Número da página (começa em 1)
+            page_size: Tamanho da página (None usa o padrão)
+            
+        Returns:
+            dict: {
+                'data': DataFrame com os dados da página,
+                'page': número da página atual,
+                'page_size': tamanho da página,
+                'total_records': total de registros,
+                'total_pages': total de páginas,
+                'has_next': bool indicando se há próxima página,
+                'has_prev': bool indicando se há página anterior
+            }
+        """
+        if page_size is None:
+            page_size = self._default_page_size
+        
+        # Valida parâmetros
+        if page < 1:
+            page = 1
+        if page_size < 1:
+            page_size = self._default_page_size
+        
+        # Carrega todos os dados
+        df = self.get_data(tipo)
+        total_records = len(df)
+        total_pages = (total_records + page_size - 1) // page_size  # Arredonda para cima
+        
+        # Ajusta página se for maior que o total
+        if page > total_pages and total_pages > 0:
+            page = total_pages
+        
+        # Calcula índices
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        
+        # Extrai página
+        page_data = df.iloc[start_idx:end_idx]
+        
+        return {
+            'data': page_data,
+            'page': page,
+            'page_size': page_size,
+            'total_records': total_records,
+            'total_pages': total_pages,
+            'has_next': page < total_pages,
+            'has_prev': page > 1
+        }
+    
+    def search_records_paginated(self, tipo, campo, valor, page=1, page_size=None):
+        """
+        Busca registros com paginação
+        
+        Args:
+            tipo: Tipo de dado
+            campo: Campo para buscar
+            valor: Valor para buscar
+            page: Número da página
+            page_size: Tamanho da página
+            
+        Returns:
+            dict: Resultado paginado (mesmo formato de get_data_paginated)
+        """
+        if page_size is None:
+            page_size = self._default_page_size
+        
+        # Busca todos os resultados
+        df = self.search_records(tipo, campo, valor)
+        total_records = len(df)
+        total_pages = (total_records + page_size - 1) // page_size
+        
+        # Ajusta página
+        if page < 1:
+            page = 1
+        if page > total_pages and total_pages > 0:
+            page = total_pages
+        
+        # Pagina resultados
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        page_data = df.iloc[start_idx:end_idx]
+        
+        return {
+            'data': page_data,
+            'page': page,
+            'page_size': page_size,
+            'total_records': total_records,
+            'total_pages': total_pages,
+            'has_next': page < total_pages,
+            'has_prev': page > 1
+        }
+    
+    # ========== QUERY BUILDER ==========
+    
+    class QueryBuilder:
+        """
+        Construtor de queries para buscas complexas
+        """
+        def __init__(self, data_manager, tipo):
+            self._dm = data_manager
+            self._tipo = tipo
+            self._filters = []
+            self._order_by = None
+            self._order_desc = False
+            self._limit = None
+            self._offset = 0
+        
+        def where(self, campo, operador, valor):
+            """
+            Adiciona filtro
+            
+            Args:
+                campo: Nome do campo
+                operador: '=', '!=', '>', '<', '>=', '<=', 'contains', 'startswith', 'endswith', 'in'
+                valor: Valor para comparar
+                
+            Returns:
+                self: Para encadeamento
+            """
+            self._filters.append({
+                'campo': campo,
+                'operador': operador,
+                'valor': valor
+            })
+            return self
+        
+        def order_by(self, campo, desc=False):
+            """
+            Define ordenação
+            
+            Args:
+                campo: Campo para ordenar
+                desc: True para ordem decrescente
+                
+            Returns:
+                self: Para encadeamento
+            """
+            self._order_by = campo
+            self._order_desc = desc
+            return self
+        
+        def limit(self, limit):
+            """
+            Limita número de resultados
+            
+            Args:
+                limit: Número máximo de resultados
+                
+            Returns:
+                self: Para encadeamento
+            """
+            self._limit = limit
+            return self
+        
+        def offset(self, offset):
+            """
+            Define offset (pular registros)
+            
+            Args:
+                offset: Número de registros para pular
+                
+            Returns:
+                self: Para encadeamento
+            """
+            self._offset = offset
+            return self
+        
+        def execute(self):
+            """
+            Executa a query e retorna resultados
+            
+            Returns:
+                DataFrame: Resultados da query
+            """
+            # Carrega dados
+            df = self._dm.get_data(self._tipo)
+            
+            if len(df) == 0:
+                return df
+            
+            # Aplica filtros
+            for filter_def in self._filters:
+                campo = filter_def['campo']
+                operador = filter_def['operador']
+                valor = filter_def['valor']
+                
+                if campo not in df.columns:
+                    continue
+                
+                if operador == '=':
+                    df = df[df[campo] == valor]
+                elif operador == '!=':
+                    df = df[df[campo] != valor]
+                elif operador == '>':
+                    df = df[df[campo] > valor]
+                elif operador == '<':
+                    df = df[df[campo] < valor]
+                elif operador == '>=':
+                    df = df[df[campo] >= valor]
+                elif operador == '<=':
+                    df = df[df[campo] <= valor]
+                elif operador == 'contains':
+                    df = df[df[campo].astype(str).str.contains(str(valor), case=False, na=False)]
+                elif operador == 'startswith':
+                    df = df[df[campo].astype(str).str.startswith(str(valor), na=False)]
+                elif operador == 'endswith':
+                    df = df[df[campo].astype(str).str.endswith(str(valor), na=False)]
+                elif operador == 'in':
+                    df = df[df[campo].isin(valor)]
+            
+            # Ordena
+            if self._order_by and self._order_by in df.columns:
+                df = df.sort_values(by=self._order_by, ascending=not self._order_desc)
+            
+            # Aplica offset e limit
+            if self._offset > 0:
+                df = df.iloc[self._offset:]
+            
+            if self._limit is not None:
+                df = df.iloc[:self._limit]
+            
+            return df
+        
+        def count(self):
+            """
+            Retorna número de registros que correspondem aos filtros
+            
+            Returns:
+                int: Número de registros
+            """
+            return len(self.execute())
+        
+        def first(self):
+            """
+            Retorna primeiro registro
+            
+            Returns:
+                dict ou None: Primeiro registro ou None se não houver resultados
+            """
+            df = self.limit(1).execute()
+            return df.iloc[0].to_dict() if len(df) > 0 else None
+        
+        def paginate(self, page=1, page_size=50):
+            """
+            Retorna resultados paginados
+            
+            Args:
+                page: Número da página
+                page_size: Tamanho da página
+                
+            Returns:
+                dict: Resultado paginado
+            """
+            # Executa query sem limit/offset
+            original_limit = self._limit
+            original_offset = self._offset
+            
+            self._limit = None
+            self._offset = 0
+            all_results = self.execute()
+            
+            # Restaura
+            self._limit = original_limit
+            self._offset = original_offset
+            
+            # Pagina
+            total_records = len(all_results)
+            total_pages = (total_records + page_size - 1) // page_size
+            
+            if page < 1:
+                page = 1
+            if page > total_pages and total_pages > 0:
+                page = total_pages
+            
+            start_idx = (page - 1) * page_size
+            end_idx = start_idx + page_size
+            page_data = all_results.iloc[start_idx:end_idx]
+            
+            return {
+                'data': page_data,
+                'page': page,
+                'page_size': page_size,
+                'total_records': total_records,
+                'total_pages': total_pages,
+                'has_next': page < total_pages,
+                'has_prev': page > 1
+            }
+    
+    def query(self, tipo):
+        """
+        Cria um query builder para buscas complexas
+        
+        Args:
+            tipo: Tipo de dado
+            
+        Returns:
+            QueryBuilder: Objeto para construir query
+            
+        Example:
+            # Busca alunos ativos com nome começando com 'João'
+            results = dm.query('cadastro') \\
+                        .where('status', '=', 'Ativo') \\
+                        .where('nome_completo', 'startswith', 'João') \\
+                        .order_by('nome_completo') \\
+                        .limit(10) \\
+                        .execute()
+            
+            # Busca paginada
+            page = dm.query('cadastro') \\
+                     .where('ano_escolar', 'in', ['1º', '2º', '3º']) \\
+                     .order_by('nome_completo') \\
+                     .paginate(page=1, page_size=20)
+        """
+        return self.QueryBuilder(self, tipo)
+    
+    # ========== COMPRESSÃO MELHORADA DE BACKUPS ==========
+    
+    def create_backup_compressed(self, backup_path=None, compression_level=9):
+        """
+        Cria backup com compressão melhorada (nível máximo por padrão)
+        
+        Args:
+            backup_path: Caminho do backup (None para gerar automaticamente)
+            compression_level: Nível de compressão (0-9, sendo 9 o máximo)
+            
+        Returns:
+            dict: {
+                'path': caminho do backup,
+                'size': tamanho em bytes,
+                'compressed_size': tamanho comprimido em bytes,
+                'compression_ratio': taxa de compressão (%)
+            }
+        """
+        if backup_path is None:
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            backup_filename = f'backup_matricula_{timestamp}.zip'
+            backup_path = os.path.join(self.backup_dir, backup_filename)
+        
+        # Cria diretório se não existir
+        backup_dir = os.path.dirname(backup_path)
+        if not os.path.exists(backup_dir):
+            os.makedirs(backup_dir)
+        
+        # Calcula tamanho original
+        original_size = 0
+        files_to_backup = []
+        for tipo, filepath in self.files.items():
+            if os.path.exists(filepath):
+                original_size += os.path.getsize(filepath)
+                files_to_backup.append(filepath)
+        
+        # Cria ZIP com compressão máxima
+        with zipfile.ZipFile(backup_path, 'w', zipfile.ZIP_DEFLATED, compresslevel=compression_level) as zipf:
+            for filepath in files_to_backup:
+                zipf.write(filepath, os.path.basename(filepath))
+        
+        # Calcula estatísticas
+        compressed_size = os.path.getsize(backup_path)
+        compression_ratio = ((original_size - compressed_size) / original_size * 100) if original_size > 0 else 0
+        
+        return {
+            'path': backup_path,
+            'size': original_size,
+            'compressed_size': compressed_size,
+            'compression_ratio': compression_ratio
+        }
